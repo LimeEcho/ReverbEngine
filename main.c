@@ -2,15 +2,28 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
-#define W 400
+#define W 1000
 #define RATIO ((float)16 / (float)9)
 #define FL (float)1
 #define VH 2
 
+int hit (float *ct, float radius, ray *iray){
+	float *oc = sub (ct, origin (iray));
+	float a = dot (direction (iray), direction (iray));
+	float b = -2.0 * dot (direction (iray), oc);
+	float c = dot (oc, oc) - radius * radius;
+	float ihit = squ (b) - 4 * a * c;
+	return (ihit >= 0);
+}
+
 void ray_col (ray *iray){
-	float *unit_dir = unit_vec (direction (iray));
-	float a = 0.5 * (ry (unit_dir) + 1.0);
-	write_color (add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a)));
+	if (hit (req (0.0, 0.0, -1.0), 0.5, iray)){
+		write_color (req (0.0, 1.0, 0.0));
+	}else{
+		float *unit_dir = unit_vec (direction (iray));
+		float a = 0.5 * (ry (unit_dir) + 1.0);
+		write_color (add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a)));
+	}
 }
 
 int main(void){
