@@ -1,19 +1,19 @@
 CC = clang
 FLAGS = -O0
 SFLAGS = -O3 -S
-TARGET = EchoRenderer
+TARGET = build/EchoRenderer
 SRCS = main.c
 HEADERS = vec3.h color.h ray.h
 
-OBJS = $(SRCS:.c=.o)
+OBJS = $(patsubst %.c, build/%.o, $(SRCS))
 all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC)  -o $@ $^
-%.o: %.c $(HEADERS)
+build/%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(TARGET)
 
 run:
-	make && ./EchoRenderer > a.ppm && open a.ppm
+	make && ./build/EchoRenderer > a.ppm && open a.ppm
