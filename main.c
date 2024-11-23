@@ -8,7 +8,9 @@
 #define VH 2
 
 void ray_col (ray *iray){
-	write_color (req (0.5, 0.7, 0.8));
+	float *unit_dir = unit_vec (direction (iray));
+	float a = 0.5 * (ry (unit_dir) + 1.0);
+	write_color (add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a)));
 }
 
 int main(void){
