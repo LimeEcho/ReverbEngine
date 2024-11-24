@@ -3,7 +3,7 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
-#define im_w 400
+#define im_w 1000
 #define RATIO ((float)16 / (float)9)
 #define FL (float)1
 #define vp_h (float)2
@@ -29,15 +29,15 @@ float hit (float *ct, float radius, ray *iray){				// 碰撞检测，利用x² +
 	   那么光线可以穿过球体（两个交点）
 	   只需要知道是否相交，所以要知道Δ是不是非负数即可
 	 */
-	float a = dot (direction (iray), direction (iray));
-	float b = -2.0 * dot (direction (iray), oc);
-	float c = dot (oc, oc) - radius * radius;
-	float delta = squ (b) - 4 * a * c;
+	float a = square (direction (iray));//dot (direction (iray), direction (iray));
+	float h = dot (direction (iray), oc);
+	float c = square (oc) - squ(radius);//dot (oc, oc) - radius * radius;
+	float delta = squ(h) - a * c;
 
 	if (delta < 0){											// 如果不相交
 		return -1.0;
 	}else{													// 相交
-		float t = (-b - sqrt (delta)) / ((float)2 * a);		// 求出方程的解（t）
+		float t = (h - sqrt (delta)) / a;					// 求出方程的解（t）
 		return t;
 	}
 }
