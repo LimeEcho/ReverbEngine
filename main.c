@@ -1,13 +1,13 @@
 #include <stdio.h>
+#include <math.h>
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
-#define im_w 1000
+#define im_w 400
 #define RATIO ((float)16 / (float)9)
 #define FL (float)1
 #define vp_h (float)2
-
-int hit (float *ct, float radius, ray *iray){				// 碰撞检测，利用x² + y² + z² = r²
+float hit (float *ct, float radius, ray *iray){				// 碰撞检测，利用x² + y² + z² = r²
 	float *oc = sub (ct, origin (iray));					// 将射线的起点变为0
 	/* 
 	   x² + y² + z² = r²
@@ -32,13 +32,22 @@ int hit (float *ct, float radius, ray *iray){				// 碰撞检测，利用x² + y
 	float a = dot (direction (iray), direction (iray));
 	float b = -2.0 * dot (direction (iray), oc);
 	float c = dot (oc, oc) - radius * radius;
-	float ihit = squ (b) - 4 * a * c;
-	return (ihit >= 0);
+	float delta = squ (b) - 4 * a * c;
+
+	if (delta < 0){											// 如果不相交
+		return -1.0;
+	}else{													// 相交
+		float t = (-b - sqrt (delta)) / ((float)2 * a);		// 求出方程的解（t）
+		return t;
+	}
 }
 
 void ray_col (ray *iray){
-	if (hit (req (0.0, 0.0, -1.0), 0.5, iray)){				// 如果相交
-		write_color (req (0.0, 1.0, 0.0));					// 那么这个像素就是绿的
+	float *sph_ct = req (0.0, 0.0, -1.0);					// 球体中心
+	float t = hit (sph_ct, 0.5, iray);						// t值
+	if (t > 0.0){											// 如果相交
+		float *normal = unit_vec (sub (at (iray, t), sph_ct));
+		write_color (mul(req (rx (normal) + 1.0, ry (normal) + 1.0, rz (normal) + 1), 0.5));	// 那么根据法线向量计算颜色
 	}else{
 		float *unit_dir = unit_vec (direction (iray));		// 渐变颜色，先使方向归一化
 		float a = 0.5 * (ry (unit_dir) + 1.0);				// 渐变系数
