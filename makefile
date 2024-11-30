@@ -13,7 +13,7 @@ build/%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) a.ppm
 
 run:
 	make && ./build/EchoRenderer > a.ppm && open a.ppm
