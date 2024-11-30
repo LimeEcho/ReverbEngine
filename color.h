@@ -1,9 +1,11 @@
+// color.h
+
 #ifndef COLOR
 #define COLOR
 
 #include "vec3.h"
 
-void write_color (float *color) {
+void write_color (float *color) {		// 为了ppm格式而写的
 	double r = rx (color);
 	double g = ry (color);
 	double b = rz (color);

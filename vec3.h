@@ -1,3 +1,5 @@
+// vec3.h
+
 #ifndef VEC_3
 #define VEC_3
 
@@ -5,7 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define squ(x) ((x)*(x))
-float *req (float e1, float e2, float e3){
+#define dg2rd(x) (x*M_PI/180.0)
+float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 	float *e = (float *)(malloc (3 * sizeof (float)));
 	e[0] = e1;
 	e[1] = e2;
@@ -13,7 +16,7 @@ float *req (float e1, float e2, float e3){
 	return e;
 }
 
-float rx (float *e){
+float rx (float *e){									// 返回x值，下面ry，rz一样的
 	return e[0];
 }
 
@@ -25,7 +28,7 @@ float rz (float *e){
 	return e[2];
 }
 
-float *opo (float *e){
+float *opo (float *e){									// 关于世界原点中心对成
 	return req (-rx(e), -ry(e), -rz(e));
 }
 

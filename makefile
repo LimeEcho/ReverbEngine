@@ -3,7 +3,7 @@ FLAGS = -O0
 SFLAGS = -O3 -S
 TARGET = build/EchoRenderer
 SRCS = main.c
-HEADERS = vec3.h color.h ray.h
+HEADERS = *.h
 
 OBJS = $(patsubst %.c, build/%.o, $(SRCS))
 all: $(TARGET)
