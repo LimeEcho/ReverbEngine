@@ -28,53 +28,22 @@ void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
 
 char hit_ray(ray *iray, float tmin, float tmax, hit_rc *ht, obj_info *objs) {
     obj_info *tos = objs;
-
     hit_rc *temp = malloc(sizeof(hit_rc));
 
     char hit_anything = 0;
     float closest = tmax;
 
-    // 遍历所有的物体
-    while (tos != NULL) {
-
-        // 调用碰撞检测函数
-        if ((tos->hit)(tos->ct, tmin, closest, tos->radius, iray, temp)) {
-            hit_anything = 1;
-            closest = temp->t;
-            *ht = *temp;  // 确保将结果复制到传入的 hit_record
+    while (tos != NULL) {														// 遍历所有的物体
+        if ((tos->hit)(tos->ct, tmin, closest, tos->radius, iray, temp)) {		// 调用碰撞检测函数
+            hit_anything = 1;													// 碰到了就是1
+            closest = temp->t;													// 因为将“最近的”作为碰撞点最远的传给了hit函数，所以如果能进到这个if里就是更近的一个
+            *ht = *temp;														// 将结果复制到传入的hit_record
         }
-
         tos = tos->next;  // 移动到下一个物体
     }
-
-    free(temp);  // 释放内存
+    free(temp);
     return hit_anything;
 }
-/*
-char hit_ray (ray *iray, float tmin, float tmax, hit_rc *ht, obj_info *objs){
-	hit_rc *temp = malloc(sizeof(hit_rc));
-	if (temp == NULL) {
-		fprintf(stderr, "Memory allocation failed for temp\n");
-		return 0;
-	}
-	char hit_anything = 0;
-	float closest = tmax;
-	obj_info *tos = objs;
-	while (tos++ != NULL){
-		if ((tos->hit)(tos->ct, tmin, closest, tos->radius, iray, temp)){
-			hit_anything = 1;
-			closest = temp->t;
-			ht->t = temp->t;
-			ht->p = temp->p;
-			ht->normal = temp->normal;
-			ht->ft_fc = temp->ft_fc;
-		}
-		free(temp);
-	}
-	return hit_anything;
-}
-*/
 
 // 对于C++，这里需要定义构造函数。但这是C，所以干脆就用一个个单个碰撞检测函数吧(･᷄ὢ･᷅)
-
 #endif

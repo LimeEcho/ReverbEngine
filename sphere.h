@@ -6,8 +6,8 @@
 #include "ray.h"
 #include <math.h>
 
-char sph_ht (float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc *ht){				// 碰撞检测，利用x² + y² + z² = r²
-	float *oc = sub (ct, origin (iray));					// 将射线的起点变为0
+char sph_ht (float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc *ht){	// 对于球体的碰撞检测，利用x² + y² + z² = r²
+	float *oc = sub (ct, origin (iray));												// 将射线的起点变为0
 	/* 
 	   x² + y² + z² = r²
 	   (Cₓ - x)² + (Cy - y)² + (Cz - z)² = r²
@@ -28,14 +28,14 @@ char sph_ht (float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc 
 	   那么光线可以穿过球体（两个交点）
 	   只需要知道是否相交，所以要知道Δ是不是非负数即可
 	 */
-	float a = square (direction (iray));//dot (direction (iray), direction (iray));
+	float a = square (direction (iray));
 	float h = dot (direction (iray), oc);
-	float c = square (oc) - squ(radius);//dot (oc, oc) - radius * radius;
+	float c = square (oc) - squ(radius);
 	float delta = squ(h) - a * c;
 
-	if (delta < 0)											// 如果不相交
+	if (delta < 0)																		// 如果不相交
 		return 0;
-	float t = (h - sqrt (delta)) / a;					// 求出方程的解（t1）
+	float t = (h - sqrt (delta)) / a;													// 求出方程的解（t1）
 	if ((t <= tmin || t > tmax)){
 		if (t <= tmin || t > tmax){
 			t = (h + sqrt (delta)) / a;
