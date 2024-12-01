@@ -6,7 +6,7 @@
 #include "ray.h"
 #include <math.h>
 
-char sph_ht (float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc *ht){	// 对于球体的碰撞检测，利用x² + y² + z² = r²
+char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){	// 对于球体的碰撞检测，利用x² + y² + z² = r²
 	float *oc = sub (ct, origin (iray));												// 将射线的起点变为0
 	/* 
 	   x² + y² + z² = r²
@@ -36,8 +36,8 @@ char sph_ht (float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc 
 	if (delta < 0)																		// 如果不相交
 		return 0;
 	float t = (h - sqrt (delta)) / a;													// 求出方程的解（t1）
-	if ((t <= tmin || t > tmax)){
-		if (t <= tmin || t > tmax){
+	if (!surround (ray_t, t)){
+		if (!surround (ray_t, t)){
 			t = (h + sqrt (delta)) / a;
 			return 0;
 		}

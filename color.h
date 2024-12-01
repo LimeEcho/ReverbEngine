@@ -5,6 +5,7 @@
 
 #include "vec3.h"
 
+extern FILE *file;
 void write_color (float *color) {		// 为了ppm格式而写的
 	double r = rx (color);
 	double g = ry (color);
@@ -12,7 +13,7 @@ void write_color (float *color) {		// 为了ppm格式而写的
 	int R = (int)(255.999 * r);
 	int G = (int)(255.999 * g);
 	int B = (int)(255.999 * b);
-	printf ("%d %d %d\n", R, G, B);
+	fprintf (file, "%d %d %d\n", R, G, B);
 }
 
 #endif

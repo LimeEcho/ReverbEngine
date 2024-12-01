@@ -10,7 +10,7 @@ typedef struct hit_record {
 	char ft_fc;
 } hit_rc;
 
-typedef char (*func_ptr)(float *ct, float tmin, float tmax, float radius, ray *iray, hit_rc *ht);
+typedef char (*func_ptr)(float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht);
 
 typedef struct obj_info {
 	func_ptr hit;
@@ -26,17 +26,16 @@ void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
 	ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
 }
 
-char hit_ray(ray *iray, float tmin, float tmax, hit_rc *ht, obj_info *objs) {
+char hit_ray(ray *iray, interval ray_t, hit_rc *ht, obj_info *objs) {
     obj_info *tos = objs;
     hit_rc *temp = malloc(sizeof(hit_rc));
 
     char hit_anything = 0;
-    float closest = tmax;
 
     while (tos != NULL) {														// 遍历所有的物体
-        if ((tos->hit)(tos->ct, tmin, closest, tos->radius, iray, temp)) {		// 调用碰撞检测函数
+        if ((tos->hit)(tos->ct, ray_t, tos->radius, iray, temp)) {		// 调用碰撞检测函数
             hit_anything = 1;													// 碰到了就是1
-            closest = temp->t;													// 因为将“最近的”作为碰撞点最远的传给了hit函数，所以如果能进到这个if里就是更近的一个
+            ray_t.tmax = temp->t;													// 因为将“最近的”作为碰撞点最远的传给了hit函数，所以如果能进到这个if里就是更近的一个
             *ht = *temp;														// 将结果复制到传入的hit_record
         }
         tos = tos->next;  // 移动到下一个物体

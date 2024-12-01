@@ -16,4 +16,4 @@ clean:
 	rm -f $(OBJS) $(TARGET) a.ppm
 
 run:
-	make && ./build/EchoRenderer > a.ppm && open a.ppm
+	make && ./build/EchoRenderer && open a.ppm
