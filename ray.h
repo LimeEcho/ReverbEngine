@@ -3,7 +3,6 @@
 #ifndef RAY
 #define RAY
 
-//#include <stdlib.h>
 #include <float.h>
 
 typedef struct ray{						// 一条射线，包含起点和方向向量
@@ -37,6 +36,7 @@ float *at (ray *iray, float t){			// 返回t时的点坐标
 	return add (orig, mul (dir, t));
 }
 
+
 float size (interval input){
 	return input.tmax - input.tmin;
 }
@@ -46,7 +46,7 @@ char contain (interval input, float t){
 }
 
 char surround (interval input, float t){
-		return input.tmin < t && t < input.tmax;
+	return input.tmin < t && t < input.tmax;
 }
 
 interval empty (){
