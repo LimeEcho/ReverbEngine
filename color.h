@@ -6,10 +6,24 @@
 #include "vec3.h"
 #include "ray.h"
 #include "hittable.h"
+#include <stdlib.h>
 
 extern FILE *file;
 
-void ray_col (ray *iray, obj_info *objs){
+void wt_c (float *color){
+	double r = rx (color);
+	double g = ry (color);
+	double b = rz (color);
+	interval intensity;
+	intensity.tmin = 0.0;
+	intensity.tmax = 0.9;
+	int R = (int)(256 * clamp (intensity, r));
+	int G = (int)(256 * clamp (intensity, g));
+	int B = (int)(256 * clamp (intensity, b));
+	fprintf (file, "%d %d %d\n", R, G, B);
+}
+
+float *ray_col (ray *iray, world *objs){
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	interval world;
 	world.tmin = 0;
@@ -23,13 +37,6 @@ void ray_col (ray *iray, obj_info *objs){
 		color = add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a));
 		// blendedValue = (1 - a) * startValue + a * endValue
 	}
-	double r = rx (color);
-	double g = ry (color);
-	double b = rz (color);
-	int R = (int)(255.999 * r);
-	int G = (int)(255.999 * g);
-	int B = (int)(255.999 * b);
-	fprintf (file, "%d %d %d\n", R, G, B);
+	return color;
 }
-
 #endif

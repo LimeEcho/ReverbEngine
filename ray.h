@@ -49,6 +49,14 @@ char surround (interval input, float t){
 	return input.tmin < t && t < input.tmax;
 }
 
+float clamp (interval input, float x){
+	if (x < input.tmin)
+		return input.tmin;
+	if (x > input.tmax)
+		return input.tmax;
+	return x;
+}
+
 interval empty (){
 	interval empty;
 	empty.tmin = FLT_MAX;

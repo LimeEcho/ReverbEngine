@@ -2,13 +2,9 @@
 #define CAMERA
 
 // 在main最后include的，所以不需要include任何头文件
-#define im_w 500
-#define RATIO ((float)16 / (float)9)
-#define FL (float)1
-#define vp_h (float)2
-
 FILE *file;
 int im_h;
+float pix_samples_scale;
 float vp_w;
 float *cm_ct;
 float *vp_u;
@@ -20,32 +16,32 @@ float *px_00_lc;
 int all;
 float step;
 float current;
-obj_info *objsh;																// 构建场景物体集
-obj_info *objst;															// 链表结构
+world *objsh;																// 构建场景物体集
+world *objst;															// 链表结构
 
-void add_obj(obj_info **objsh, obj_info **objst, float *ct, float radius) {				// 一个标准的操作链表函数（骄傲）∠( ᐛ 」∠)＿
-	obj_info *new_obj = malloc(sizeof(obj_info));
+void add_obj(float *ct, float radius) {				// 一个标准的操作链表函数（骄傲）∠( ᐛ 」∠)＿
+	world *new_obj = malloc(sizeof(world));
 
 	new_obj->hit = &sph_ht;
 	new_obj->ct = ct;
 	new_obj->radius = radius;
 	new_obj->next = NULL;
 
-	if (*objsh == NULL) {
-		*objsh = *objst =  new_obj;
+	if (objsh == NULL) {
+		objsh = objst = new_obj;
 	}else{
-		(*objst)->next = new_obj;
-		*objst = (*objst)->next;
+		objst->next = new_obj;
+		objst = objst->next;
 	}
 }
-
-
 
 void initalize (void){
 	objsh = NULL;																// 构建场景物体集
 	objst = objsh;															// 链表结构
 
 	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);						// 根据比例计算图像高度
+
+	pix_samples_scale = 1.0 / sample;
 
 	vp_w = vp_h * ((float)im_w / im_h);											// 视图宽度
 	cm_ct = req (0.0, 0.0, 0.0);													// 相机中心
@@ -61,19 +57,32 @@ void initalize (void){
 	file = fopen ("a.ppm", "w");
 	fprintf (file, "P3\n%d %d\n255\n", im_w, im_h);
 	all = im_h * im_w;
-	step = 100.0 / all;
+	step = 100.0 / all / sample;
 	current = 0.0;
 }
 
-void render (void){
+float *sp_in_sq (void) {
+	return req (randoms() - 0.5, randoms() - 0.5, 0);
+}
+
+ray *get_ray (int x, int y) {
+	float *offset = sp_in_sq ();
+	float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));			// 像素中心坐标
+	float *ray_dir = sub (px_ct, cm_ct);												// 发射射线
+	return reqray (cm_ct, ray_dir);													// 创建
+}
+
+void render (world *world){
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
-			current += step;
-			printf ("\rCurrent: %.2f%%", current);
-			float *px_ct = add (px_00_lc, add (mul (px_dl_u, x), mul (px_dl_v, y)));			// 像素中心坐标
-			float *ray_dir = sub (px_ct, cm_ct);												// 发射射线
-			ray *r = reqray (cm_ct, ray_dir);													// 创建
-			ray_col (r, objsh);																	// 写出像素颜色（其中检测是否相交）
+			float *pix_c = req (0.0, 0.0, 0.0);
+			for (int sa = 0; sa < sample; sa++){
+				//current += step;
+				//printf ("\rCurrent: %.2f%%", current);
+				ray *r = get_ray (x, y);
+				pix_c = add (pix_c, ray_col (r, world));
+			}
+			wt_c (mul (pix_c, pix_samples_scale));																	// 写出像素颜色（其中检测是否相交）
 		}
 	}
 	printf ("\rCurrent: 100.0%%\n");

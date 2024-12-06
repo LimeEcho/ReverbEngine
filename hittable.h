@@ -12,12 +12,12 @@ typedef struct hit_record {
 
 typedef char (*func_ptr)(float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht);
 
-typedef struct obj_info {
+typedef struct world {
 	func_ptr hit;
 	float *ct;
 	float radius;
-	struct obj_info *next;
-} obj_info;
+	struct world *next;
+} world;
 
 void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
 	// ot_nm默认已经有了归一化处理
@@ -26,8 +26,8 @@ void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
 	ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
 }
 
-char hit_ray(ray *iray, interval ray_t, hit_rc *ht, obj_info *objs) {
-    obj_info *tos = objs;
+char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {
+    world *tos = objs;
     hit_rc *temp = malloc(sizeof(hit_rc));
 
     char hit_anything = 0;

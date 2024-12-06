@@ -6,6 +6,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 #define squ(x) ((x)*(x))
 #define dg2rd(x) (x*M_PI/180.0)
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
@@ -100,8 +102,11 @@ float *unit_vec (float *e){
 	return divi (e, length (e));
 }
 
-void out (float *e){
-	printf ("x: %f\ty: %f\tz: %f\n", rx (e), ry (e), rz (e));
+float randoms (void){
+	return 1.0f / ((float)rand() / (RAND_MAX + 1.0));
 }
 
+float randomb (float min, float max){
+	return min + randoms () * (max - min);
+}
 #endif
