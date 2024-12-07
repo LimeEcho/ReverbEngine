@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #define squ(x) ((x)*(x))
 #define dg2rd(x) (x*M_PI/180.0)
+#define epsilon 1e-6f
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 	float *e = (float *)(malloc (3 * sizeof (float)));
 	e[0] = e1;
@@ -109,4 +110,24 @@ float randoms (void){
 float randomb (float min, float max){
 	return min + randoms () * (max - min);
 }
+
+float *randoml (void){
+	return req (randoms(), randoms(), randoms());
+}
+
+float *randomlb (float min, float max){
+	return req (randomb(min, max), randomb(min, max), randomb(min, max));
+}
+
+float *rd_unit_vec (){
+	float *p;
+	float lensq;
+	while (!(epsilion < lensq && lensq <= 1){
+		free (p);
+		p = randomlb (-1, 1);
+		lensq = square (p);
+	}
+	return divi (p / sqrt (lensq));
+}
+
 #endif
