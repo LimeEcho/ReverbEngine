@@ -1,19 +1,32 @@
 CC = clang
-FLAGS = -O0
+FLAGS = -O3 -g
 SFLAGS = -O3 -S
-TARGET = build/EchoRenderer
+TARGET = build/reverb
 SRCS = main.c
-HEADERS = *.h
-
+HEADERS = $(wildcard *.h)
 OBJS = $(patsubst %.c, build/%.o, $(SRCS))
+
+.PHONY: all clean run debug
+
 all: $(TARGET)
+
 $(TARGET): $(OBJS)
-	$(CC)  -o $@ $^
+	$(CC) -g -o $@ $^
+
 build/%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+	mkdir -p build
+	$(CC) $(FLAGS) -c $< -o $@
+
+build/%.s: %.c $(HEADERS)
+	mkdir -p build
+	$(CC) $(SFLAGS) -o $@ $<
 
 clean:
-	rm -f $(OBJS) $(TARGET) a.ppm
+	rm -rf $(OBJS) $(TARGET) renderOut.ppm ./build/*.dSYM
 
 run:
-	make && ./build/EchoRenderer && open renderOut.ppm
+	make && ./build/reverb && open renderOut.ppm
+
+debug: $(TARGET)
+	dsymutil build/reverb -o build/reverb.dSYM
+	lldb -o "file $(TARGET)" -o "target symbols add build/reverb.dSYM/Contents/Resources/DWARF/reverb"

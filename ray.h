@@ -14,7 +14,6 @@ typedef struct interval {
 	float tmin;
 	float tmax;
 } interval;
-
 ray *reqray (float *orig, float *dir){	// 发射一条射线
 	ray *nray = malloc (sizeof (ray));
 	nray->orig = orig;

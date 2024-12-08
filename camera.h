@@ -1,6 +1,8 @@
 #ifndef CAMERA
 #define CAMERA
 
+#include <stdlib.h>
+
 // 在main最后include的，所以不需要include任何头文件
 extern FILE *file;
 extern int im_h;
@@ -13,10 +15,12 @@ extern float *px_dl_u;
 extern float *px_dl_v;
 extern float *vp_ul;
 extern float *px_00_lc;
+extern int all_frames;
+extern int cur_frame;
 extern world *objsh;												// 构建场景物体集
 extern world *objst;												// 链表结构
 
-#define sp_in_sq() req (randoms() - 0.5, randoms() - 0.5, 0);
+#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);
 
 void add_obj(float *ct, float radius) {								// 一个标准的操作链表函数（骄傲）∠( ᐛ 」∠)＿
 	world *new_obj = malloc(sizeof(world));
@@ -35,6 +39,7 @@ void add_obj(float *ct, float radius) {								// 一个标准的操作链表函
 }
 
 void initalize (void){
+	srand48 (114514);
 	objsh = NULL;													// 构建场景物体集
 	objst = objsh;													// 链表结构
 
@@ -53,12 +58,12 @@ void initalize (void){
 
 	vp_ul = sub(sub (cm_ct, req (0.0, 0.0, FL)), add (divi (vp_u, 2), divi (vp_v, 2)));	// 左上角像素，也就是P (0,0)
 	px_00_lc = add (vp_ul, mul (add (px_dl_u, px_dl_v), 0.5));							// 左上角像素坐标
+
+	all_frames = im_h * im_w;
+	cur_frame = 0;
+
 	file = fopen ("renderOut.ppm", "w");
 	fprintf (file, "P3\n%d %d\n255\n", im_w, im_h);
-}
-
-float *sp_in_sq (void) {
-	return ;
 }
 
 ray *get_ray (int x, int y) {
@@ -69,12 +74,16 @@ ray *get_ray (int x, int y) {
 }
 
 void render (world *world){
+	printf ("entered render\n");
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
+			if (cur_frame++ % 1000 == 0)
+				printf ("frame: %5d /%5d\n", cur_frame, all_frames);
 			float *pix_c = req (0.0, 0.0, 0.0);
 			for (int sa = 0; sa < sample; sa++){
 				ray *r = get_ray (x, y);
-				pix_c = add (pix_c, ray_col (r, world));
+				float *col = ray_col (r, world, max_depth);
+				pix_c = add (pix_c, col);
 			}
 			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
 		}

@@ -23,14 +23,17 @@ void wt_c (float *color){
 	fprintf (file, "%d %d %d\n", R, G, B);
 }
 
-float *ray_col (ray *iray, world *objs){
+float *ray_col (ray *iray, world *objs, int depth){
+	if (depth <= 0)
+		return req (0, 0, 0);
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	interval world;
 	world.tmin = 0;
 	world.tmax = FLT_MAX;
 	float *color;
 	if (hit_ray (iray, world, rec, objs)){											// 如果相交
-		color = mul (add (rec->normal, req (1, 1, 1)), 0.5);
+		float *dir = rd_on_he (rec->normal);
+		color = mul (ray_col (reqray (rec->p, dir), objs, depth - 1), 0.5);//add (rec->normal, req (1, 1, 1)), 0.5);
 	}else{
 		float *unit_dir = unit_vec (direction (iray));									// 渐变颜色，先使方向归一化
 		float a = 0.5 * (ry (unit_dir) + 1.0);											// 渐变系数

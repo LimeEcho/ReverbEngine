@@ -103,31 +103,34 @@ float *unit_vec (float *e){
 	return divi (e, length (e));
 }
 
-float randoms (void){
-	return 1.0f / ((float)rand() / (RAND_MAX + 1.0));
-}
-
 float randomb (float min, float max){
-	return min + randoms () * (max - min);
+	return min + drand48 () * (max - min);
 }
 
 float *randoml (void){
-	return req (randoms(), randoms(), randoms());
+	return req (drand48(), drand48(), drand48());
 }
 
 float *randomlb (float min, float max){
 	return req (randomb(min, max), randomb(min, max), randomb(min, max));
 }
 
-float *rd_unit_vec (){
-	float *p;
+float *rd_unit_vec (void){
+	float *p = NULL;
 	float lensq;
-	while (!(epsilion < lensq && lensq <= 1){
+	while (!(epsilon < lensq && lensq <= 1)){
 		free (p);
 		p = randomlb (-1, 1);
 		lensq = square (p);
 	}
-	return divi (p / sqrt (lensq));
+	return divi (p, (float)sqrt (lensq));
 }
 
+float *rd_on_he (float *normal){
+	float * on = rd_unit_vec();
+	if (dot (on, normal) > 0.0)
+		return on;
+	else
+		return opo (on);
+}
 #endif
