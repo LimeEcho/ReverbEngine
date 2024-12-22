@@ -14,6 +14,7 @@ typedef struct interval {
 	float tmin;
 	float tmax;
 } interval;
+
 ray *reqray (float *orig, float *dir){	// 发射一条射线
 	ray *nray = malloc (sizeof (ray));
 	nray->orig = orig;
@@ -21,11 +22,11 @@ ray *reqray (float *orig, float *dir){	// 发射一条射线
 	return nray;
 }
 
-float *origin (ray *iray) {				// 返回起点
+inline float *origin (ray *iray) {				// 返回起点
 	return iray->orig;
 }
 
-float *direction (ray *iray) {			// 返回方向向量
+inline float *direction (ray *iray) {			// 返回方向向量
 	return iray->dir;
 }
 
@@ -35,16 +36,15 @@ float *at (ray *iray, float t){			// 返回t时的点坐标
 	return add (orig, mul (dir, t));
 }
 
-
-float size (interval input){
+inline float size (interval input){
 	return input.tmax - input.tmin;
 }
 
-char contain (interval input, float t){
+inline char contain (interval input, float t){
 	return input.tmin <= t && t <= input.tmax;
 }
 
-char surround (interval input, float t){
+inline char surround (interval input, float t){
 	return input.tmin < t && t < input.tmax;
 }
 

@@ -1,12 +1,11 @@
 #ifndef SPHERE
 #define SPHERE
 
-#include "hittable.h"
-#include "vec3.h"
-#include "ray.h"
 #include <math.h>
 
-char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){	// 对于球体的碰撞检测，利用x² + y² + z² = r²
+char mat (void) {return 0;}
+
+char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){			// 对于球体的碰撞检测，利用x² + y² + z² = r²
 	float *oc = sub (ct, origin (iray));												// 将射线的起点变为0
 	/* 
 	   x² + y² + z² = r²
@@ -47,7 +46,6 @@ char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){	//
 	ht->normal = divi (sub (ht->p, ct), radius);
 	float *ot_nm = divi (sub (ht->p, ct), radius);
 	st_fc_nm (iray, ot_nm, ht);
-
 	return 1;
 }
 #endif

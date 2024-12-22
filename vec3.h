@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
 #define squ(x) ((x)*(x))
 #define dg2rd(x) (x*M_PI/180.0)
 #define epsilon 1e-6f
@@ -19,19 +21,19 @@ float *req (float e1, float e2, float e3){				// 获取，在C++里用class，�
 	return e;
 }
 
-float rx (float *e){									// 返回x值，下面ry，rz一样的
+inline float rx (float *e){
 	return e[0];
 }
 
-float ry (float *e){
+inline float ry (float *e){
 	return e[1];
 }
 
-float rz (float *e){
+inline float rz (float *e){
 	return e[2];
 }
 
-float *opo (float *e){									// 关于世界原点中心对成
+inline float *opo (float *e){									// 关于世界原点中心对成
 	return req (-rx(e), -ry(e), -rz(e));
 }
 
@@ -68,15 +70,15 @@ float *mul (float *e1, float m){
 	return req (x, y, z);
 }
 
-float *divi (float *e1, float d){
+inline float *divi (float *e1, float d){
 	return mul (e1, 1 / d);
 }
 
-float square(float *e){
+inline float square(float *e){
 	return squ(rx(e)) + squ(ry(e)) + squ(rz(e));
 }
 
-float length (float *e){
+inline float length (float *e){
 	return sqrt (square (e));
 }
 
@@ -87,31 +89,31 @@ float *edot (float *u, float *v){
 	return req (x, y, z);
 }
 
-float dot (float *u, float *v){
+inline float dot (float *u, float *v){
 	return rx (u) * rx (v)
 		+ ry (u) * ry (v)
 		+ rz (u) * rz (v);
 }
 
-float *cross (float *u, float *v) {
+inline float *cross (float *u, float *v) {
 	return req(ry (u) * rz (v) - rz (u) * rz (v),
 			rz (u) * rx (v) - rx (u) * rz (v),
 			rx (u) * ry (v) - ry (u) * rx (v));
 }
 
-float *unit_vec (float *e){
+inline float *unit_vec (float *e){
 	return divi (e, length (e));
 }
 
-float randomb (float min, float max){
+inline float randomb (float min, float max){
 	return min + drand48 () * (max - min);
 }
 
-float *randoml (void){
+inline float *randoml (void){
 	return req (drand48(), drand48(), drand48());
 }
 
-float *randomlb (float min, float max){
+inline float *randomlb (float min, float max){
 	return req (randomb(min, max), randomb(min, max), randomb(min, max));
 }
 
@@ -132,5 +134,13 @@ float *rd_on_he (float *normal){
 		return on;
 	else
 		return opo (on);
+}
+
+inline char too_small (float *e){
+	return (rx (e) < epsilon) && (ry (e) < epsilon) && (rz (e) < epsilon);
+}
+
+inline float *reflect(float *v, float *n) {
+	return sub (v, mul (n, 2 * dot (v, n)));
 }
 #endif

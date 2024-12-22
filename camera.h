@@ -15,19 +15,22 @@ extern float *px_dl_u;
 extern float *px_dl_v;
 extern float *vp_ul;
 extern float *px_00_lc;
+extern float *all_zero;
 extern int all_frames;
 extern int cur_frame;
 extern world *objsh;												// 构建场景物体集
 extern world *objst;												// 链表结构
+extern interval scene;
 
-#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);
+#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
 
-void add_obj(float *ct, float radius) {								// 一个标准的操作链表函数（骄傲）∠( ᐛ 」∠)＿
+void add_obj(float *ct, float radius, char mat_type) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
 	world *new_obj = malloc(sizeof(world));
 
-	new_obj->hit = &sph_ht;
+	new_obj->hit_type = 1;
 	new_obj->ct = ct;
 	new_obj->radius = radius;
+	new_obj->mat_type = mat_type;
 	new_obj->next = NULL;
 
 	if (objsh == NULL) {
@@ -39,9 +42,12 @@ void add_obj(float *ct, float radius) {								// 一个标准的操作链表函
 }
 
 void initalize (void){
-	srand48 (114514);
-	objsh = NULL;													// 构建场景物体集
-	objst = objsh;													// 链表结构
+	srand48 (SEED);
+
+	all_zero = req (0, 0, 0);
+
+	objsh = NULL;
+	objst = objsh;
 
 	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
 
@@ -62,33 +68,70 @@ void initalize (void){
 	all_frames = im_h * im_w;
 	cur_frame = 0;
 
+	scene.tmin = 0.001;
+	scene.tmax = FLT_MAX;
+
 	file = fopen ("renderOut.ppm", "w");
 	fprintf (file, "P3\n%d %d\n255\n", im_w, im_h);
 }
-
-ray *get_ray (int x, int y) {
-	float *offset = sp_in_sq ();
-	float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
-	float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
-	return reqray (cm_ct, ray_dir);																			// 创建
+float *ray_col (ray *iray, world *objs, int depth){
+	if (depth <= 0)
+		return all_zero;
+	hit_rc *rec = malloc (sizeof (hit_rc));
+	float *color;
+	if (hit_ray (iray, scene, rec, objs)){												// 如果相交
+		ray *scattered;
+		float *atten = req (1, 1, 1);
+		switch (objs->mat_type){
+			case 1: {
+						if (metal(atten, iray, rec, &atten, &scattered)){
+							return edot (atten, ray_col(scattered, objs, depth - 1));
+						}else{
+							return all_zero;
+						}
+					}
+			case 0: {
+						if (diffuse(atten, iray, rec, &atten, &scattered)){
+							return edot (atten, ray_col(scattered, objs, depth - 1));
+						}else{
+							return all_zero;
+						}
+					}
+			default: {
+						 printf ("传入数据错误\n");
+						 exit (1);
+					 }
+		}
+	}else{
+		float *unit_dir = unit_vec (direction (iray));									// 渐变颜色，先使方向归一化
+		float a = 0.5 * (ry (unit_dir) + 1.0);											// 渐变系数
+		color = add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a));
+		// blendedValue = (1 - a) * startValue + a * endValue
+	}
+	free (rec);
+	return color;
 }
 
 void render (world *world){
-	printf ("entered render\n");
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
 			if (cur_frame++ % 1000 == 0)
-				printf ("frame: %5d /%5d\n", cur_frame, all_frames);
+				printf ("process: %5d / %5d\n", cur_frame / 1000, all_frames / 1000);
 			float *pix_c = req (0.0, 0.0, 0.0);
 			for (int sa = 0; sa < sample; sa++){
-				ray *r = get_ray (x, y);
+				float *offset = sp_in_sq ();
+				float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
+				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
+				free (offset);
+				ray *r = reqray (cm_ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
+				free (r);
 				pix_c = add (pix_c, col);
 			}
 			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
+			free (pix_c);
 		}
 	}
 	printf ("\rCurrent: 100.0%%\n");
 }
-
 #endif
