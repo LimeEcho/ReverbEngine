@@ -1,6 +1,6 @@
 // main.c
 #include <stdio.h>
-#include "headers/vec3.h"
+#include "vec3.h"
 #include "headers/ray.h"
 #include "headers/hittable.h"
 #include "headers/sphere.h"

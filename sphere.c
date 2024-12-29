@@ -2,9 +2,10 @@
 #define SPHERE
 
 #include <math.h>
-
-char mat (void) {return 0;}
-
+#include "headers/sphere.h"
+#include "headers/vec3.h"
+#include "headers/hittable.h"
+#include "headers/ray.h"
 char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){			// 对于球体的碰撞检测，利用x² + y² + z² = r²
 	float *oc = sub (ct, origin (iray));												// 将射线的起点变为0
 	/* 

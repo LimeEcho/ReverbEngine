@@ -1,13 +1,10 @@
-// color.h
-
-#ifndef COLOR
-#define COLOR
-
-#include <stdlib.h>
+// color.c
 #include <math.h>
-
+#include "headers/color.h"
+#include "vec3.h"
+#include "headers/ray.h"
+#include <stdio.h>
 extern FILE *file;
-
 inline float li2ga (float li){
 	if (li > 0)
 		return sqrt (li);
@@ -26,5 +23,3 @@ void wt_c (float *color){
 	int B = (int)(256 * clamp (intensity, b));
 	fprintf (file, "%d %d %d\n", R, G, B);
 }
-
-#endif

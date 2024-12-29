@@ -1,7 +1,12 @@
-#ifndef CAMERA
-#define CAMERA
-
+// camera.c
+#include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
+#include "headers/camera.h"
+#include "headers/ray.h"
+#include "headers/vec3.h"
+#include "headers/material.h"
+#include "headers/color.h"
 
 // 在main最后include的，所以不需要include任何头文件
 extern FILE *file;
@@ -16,6 +21,7 @@ extern float *px_dl_v;
 extern float *vp_ul;
 extern float *px_00_lc;
 extern float *all_zero;
+extern float *weaken;
 extern int all_frames;
 extern int cur_frame;
 extern world *objsh;												// 构建场景物体集
@@ -23,14 +29,23 @@ extern world *objst;												// 链表结构
 extern interval scene;
 
 #define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
+#define SEED 123
+#define im_w 700						// 图像宽度
+#define RATIO ((float)16 / (float)9)	// 长宽比
+#define FL (float)1						// 焦距
+#define vp_h (float)2					// 视图高度
+#define sample 30						// 采样次数
+#define max_depth 200					// 最高深度
+#define GAMMA 0.6						// GAMMA预设
 
-void add_obj(float *ct, float radius, char mat_type) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
-	world *new_obj = malloc(sizeof(world));
+void add_obj(float *ct, float radius, char mat_type, float *RGB) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
+	world *new_obj = (world *)malloc(sizeof(world));
 
 	new_obj->hit_type = 1;
 	new_obj->ct = ct;
 	new_obj->radius = radius;
 	new_obj->mat_type = mat_type;
+	new_obj->albedo = req (rx(RGB), ry(RGB), rz(RGB));
 	new_obj->next = NULL;
 
 	if (objsh == NULL) {
@@ -45,6 +60,7 @@ void initalize (void){
 	srand48 (SEED);
 
 	all_zero = req (0, 0, 0);
+	weaken = req (0.8, 0.8, 0.8);
 
 	objsh = NULL;
 	objst = objsh;
@@ -81,8 +97,8 @@ float *ray_col (ray *iray, world *objs, int depth){
 	float *color;
 	if (hit_ray (iray, scene, rec, objs)){												// 如果相交
 		ray *scattered;
-		float *atten = req (1, 1, 1);
-		switch (objs->mat_type){
+		float *atten = rec->albedo;
+		switch (rec->mat_type){
 			case 1: {
 						if (metal(atten, iray, rec, &atten, &scattered)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
@@ -117,7 +133,7 @@ void render (world *world){
 		for (int x = 0; x < im_w; x++){
 			if (cur_frame++ % 1000 == 0)
 				printf ("process: %5d / %5d\n", cur_frame / 1000, all_frames / 1000);
-			float *pix_c = req (0.0, 0.0, 0.0);
+			float *pix_c = all_zero;
 			for (int sa = 0; sa < sample; sa++){
 				float *offset = sp_in_sq ();
 				float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
@@ -134,4 +150,3 @@ void render (world *world){
 	}
 	printf ("\rCurrent: 100.0%%\n");
 }
-#endif

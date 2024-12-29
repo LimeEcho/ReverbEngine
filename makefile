@@ -2,7 +2,7 @@ CC = clang
 FLAGS = -O3 -g
 SFLAGS = -O3 -S
 TARGET = build/reverb
-SRCS = main.c
+SRCS = main.c color.c camera.c vec3.c hittable.c sphere.c ray.c material.c
 HEADERS = $(wildcard *.h)
 OBJS = $(patsubst %.c, build/%.o, $(SRCS))
 
