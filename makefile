@@ -1,5 +1,5 @@
 CC = clang
-FLAGS = -O3 -g
+FLAGS = -O0 -g
 SFLAGS = -O3 -S
 TARGET = build/reverb
 SRCS = main.c color.c camera.c vec3.c hittable.c sphere.c ray.c material.c

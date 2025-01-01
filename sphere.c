@@ -1,6 +1,4 @@
-#ifndef SPHERE
-#define SPHERE
-
+// sphere.c
 #include <math.h>
 #include "headers/sphere.h"
 #include "headers/vec3.h"
@@ -49,4 +47,3 @@ char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){			
 	st_fc_nm (iray, ot_nm, ht);
 	return 1;
 }
-#endif

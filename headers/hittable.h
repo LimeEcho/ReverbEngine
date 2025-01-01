@@ -1,4 +1,6 @@
 // hittable.h
+#pragma once
+
 #ifndef HITTABLE
 #define HITTABLE
 #include "ray.h"
@@ -9,6 +11,7 @@ typedef struct hit_record {
 	float *normal;
 	char ft_fc;
 	float *albedo;
+	float fuzz;
 	char mat_type;
 } hit_rc;
 typedef struct world {
@@ -17,13 +20,9 @@ typedef struct world {
 	float *ct;
 	float radius;
 	float *albedo;
+	float fuzz;
 	struct world *next;
 } world;
-inline void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
-	// ot_nm默认已经有了归一化处理
-
-	ht->ft_fc = dot (direction (iray), ot_nm) < 0;
-	ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
-}
+void st_fc_nm (ray *, float *, hit_rc *);
 char hit_ray(ray *, interval, hit_rc *, world *);
 #endif

@@ -9,24 +9,24 @@
 #include "headers/color.h"
 
 // 在main最后include的，所以不需要include任何头文件
-extern FILE *file;
-extern int im_h;
-extern float pix_samples_scale;
-extern float vp_w;
-extern float *cm_ct;
-extern float *vp_u;
-extern float *vp_v;
-extern float *px_dl_u;
-extern float *px_dl_v;
-extern float *vp_ul;
-extern float *px_00_lc;
-extern float *all_zero;
-extern float *weaken;
-extern int all_frames;
-extern int cur_frame;
-extern world *objsh;												// 构建场景物体集
-extern world *objst;												// 链表结构
-extern interval scene;
+FILE *file;
+int im_h;
+float pix_samples_scale;
+float vp_w;
+float *cm_ct;
+float *vp_u;
+float *vp_v;
+float *px_dl_u;
+float *px_dl_v;
+float *vp_ul;
+float *px_00_lc;
+float *all_zero;
+float *weaken;
+int all_frames;
+int cur_frame;
+world *objsh;												// 构建场景物体集
+world *objst;												// 链表结构
+interval scene;
 
 #define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
 #define SEED 123
@@ -34,18 +34,33 @@ extern interval scene;
 #define RATIO ((float)16 / (float)9)	// 长宽比
 #define FL (float)1						// 焦距
 #define vp_h (float)2					// 视图高度
-#define sample 30						// 采样次数
-#define max_depth 200					// 最高深度
+#define sample 20						// 采样次数
+#define max_depth 20					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
 
-void add_obj(float *ct, float radius, char mat_type, float *RGB) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
+#include <stdarg.h>
+
+material add_mat (char mat_type, float *RGB, ...){
+	material *new_mat = (material *)malloc (sizeof (material));
+	new_mat->mat_type = mat_type;
+	if (mat_type == 1){
+		va_list args;
+		va_start(args, RGB);
+		new_mat->fuzz = (float)va_arg(args, double);
+		va_end(args);
+	}
+	new_mat->RGB = RGB;
+	return *new_mat;
+}
+void add_obj(float *ct, float radius, material mat) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
 	world *new_obj = (world *)malloc(sizeof(world));
 
 	new_obj->hit_type = 1;
 	new_obj->ct = ct;
 	new_obj->radius = radius;
-	new_obj->mat_type = mat_type;
-	new_obj->albedo = req (rx(RGB), ry(RGB), rz(RGB));
+	new_obj->mat_type = mat.mat_type;
+	new_obj->albedo = mat.RGB;
+	new_obj->fuzz = mat.fuzz;
 	new_obj->next = NULL;
 
 	if (objsh == NULL) {
@@ -100,7 +115,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 		float *atten = rec->albedo;
 		switch (rec->mat_type){
 			case 1: {
-						if (metal(atten, iray, rec, &atten, &scattered)){
+						if (metal(atten, iray, rec, &atten, &scattered, rec->fuzz)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
 							return all_zero;

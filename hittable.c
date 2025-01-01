@@ -1,38 +1,21 @@
-// headers/hittable.h
-#ifndef HITTABLE
-#define HITTABLE
-
+// hittable.c
 #include "headers/ray.h"
 #include "headers/vec3.h"
+#include "headers/hittable.h"
 #include <stdio.h>
 
-typedef struct hit_record hit_rc;
-
-typedef struct hit_record {
-	float t;
-	float *p;
-	float *normal;
-	char ft_fc;
-	float *albedo;
-	char mat_type;
-} hit_rc;
-
-typedef struct world {
-	char mat_type;
-	char hit_type;
-	float *ct;
-	float radius;
-	float *albedo;
-	struct world *next;
-} world;
-
-
 char sph_ht (float *, interval, float, ray *, hit_rc *);											// 具体实现在headers/sphere.h中
+
+void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
+		// ot_nm默认已经有了归一化处理
+
+			ht->ft_fc = dot (direction (iray), ot_nm) < 0;
+				ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
+}
 
 char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {
 	world *tos = objs;
 	hit_rc *temp = malloc(sizeof(hit_rc));
-
 	char hit_anything = 0;
 	while (tos != NULL) {																			// 遍历所有的物体
 		switch (tos->hit_type){
@@ -43,6 +26,7 @@ char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {
 							*ht = *temp;															// 将结果复制到传入的hit_record
 							ht->albedo = tos->albedo;
 							ht->mat_type = tos->mat_type;
+							ht->fuzz = tos->fuzz;
 						}
 						break;
 					}
@@ -55,4 +39,3 @@ char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {
 	free(temp);
 	return hit_anything;
 }
-#endif

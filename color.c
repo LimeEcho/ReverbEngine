@@ -5,7 +5,7 @@
 #include "headers/ray.h"
 #include <stdio.h>
 extern FILE *file;
-inline float li2ga (float li){
+float li2ga (float li){
 	if (li > 0)
 		return sqrt (li);
 	return 0;

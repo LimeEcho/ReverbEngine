@@ -10,6 +10,13 @@ ray *reqray (float *orig, float *dir){	// 发射一条射线
 	return nray;
 }
 
+float *origin (ray *iray) {				// 返回起点
+	return iray->orig;
+}
+float *direction (ray *iray) {			// 返回方向向量
+	return iray->dir;
+}
+
 float *at (ray *iray, float t){			// 返回t时的点坐标
 	float *orig = iray->orig;
 	float *dir = iray->dir;
@@ -22,6 +29,16 @@ float clamp (interval input, float x){
 	if (x > input.tmax)
 		return input.tmax;
 	return x;
+}
+
+float size (interval input){
+			return input.tmax - input.tmin;
+}
+char contain (interval input, float t){
+			return input.tmin <= t && t <= input.tmax;
+}
+char surround (interval input, float t){
+			return input.tmin < t && t < input.tmax;
 }
 
 interval empty (){

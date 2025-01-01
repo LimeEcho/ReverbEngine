@@ -11,9 +11,10 @@ char diffuse (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scatte
 	return 1;
 }
 
-char metal (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scattered){
+char metal (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scattered, float fuzz){
 	float *reflected = reflect(direction(iray), rec->normal);
+	reflected = add (unit_vec(reflected), (mul(rd_unit_vec(), ((fuzz < 1) ? fuzz : 1))));
 	*scattered = reqray(rec->p, reflected);
 	*atten = edot (albedo, weaken);
-	return 1;
+	return (dot(direction(*scattered), rec->normal) > 0);
 }
