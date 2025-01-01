@@ -11,7 +11,7 @@ typedef struct hit_record {
 	float *normal;
 	char ft_fc;
 	float *albedo;
-	float fuzz;
+	float arg;
 	char mat_type;
 } hit_rc;
 typedef struct world {
@@ -20,7 +20,7 @@ typedef struct world {
 	float *ct;
 	float radius;
 	float *albedo;
-	float fuzz;
+	float arg;
 	struct world *next;
 } world;
 void st_fc_nm (ray *, float *, hit_rc *);

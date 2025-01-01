@@ -124,8 +124,17 @@ float *rd_on_he (float *normal){
 }
 
 char too_small (float *e){
-		return (rx (e) < epsilon) && (ry (e) < epsilon) && (rz (e) < epsilon);
+	return (rx (e) < epsilon) && (ry (e) < epsilon) && (rz (e) < epsilon);
 }
+
 float *reflect(float *v, float *n) {
-		return sub (v, mul (n, 2 * dot (v, n)));
+	return sub (v, mul (n, 2 * dot (v, n)));
+}
+
+float *refract(float *uv, float *n, float etai_over_etat) {
+	float temp = dot(opo(uv), n);
+	float cos_theta = (temp < 0) ? 1.0 : temp;
+	float *r_out_perp = add (uv, mul (n, cos_theta));
+	float *r_out_parallel = mul (n, -(float)sqrt(fabs(1.0 - length (r_out_perp))));
+	return add (r_out_perp, r_out_parallel);
 }

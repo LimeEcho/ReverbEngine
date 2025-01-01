@@ -33,4 +33,5 @@ float *rd_unit_vec (void);
 float *rd_on_he (float *);
 char too_small (float *);
 float *reflect(float *, float *);
+float *refract(float *, float *, float);
 #endif

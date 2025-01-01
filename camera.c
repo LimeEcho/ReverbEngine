@@ -43,10 +43,10 @@ interval scene;
 material add_mat (char mat_type, float *RGB, ...){
 	material *new_mat = (material *)malloc (sizeof (material));
 	new_mat->mat_type = mat_type;
-	if (mat_type == 1){
+	if (mat_type == 1 || mat_type == 2){
 		va_list args;
 		va_start(args, RGB);
-		new_mat->fuzz = (float)va_arg(args, double);
+		new_mat->arg = (float)va_arg(args, double);
 		va_end(args);
 	}
 	new_mat->RGB = RGB;
@@ -60,7 +60,7 @@ void add_obj(float *ct, float radius, material mat) {								// 一个操作链�
 	new_obj->radius = radius;
 	new_obj->mat_type = mat.mat_type;
 	new_obj->albedo = mat.RGB;
-	new_obj->fuzz = mat.fuzz;
+	new_obj->arg = mat.arg;
 	new_obj->next = NULL;
 
 	if (objsh == NULL) {
@@ -115,11 +115,12 @@ float *ray_col (ray *iray, world *objs, int depth){
 		float *atten = rec->albedo;
 		switch (rec->mat_type){
 			case 1: {
-						if (metal(atten, iray, rec, &atten, &scattered, rec->fuzz)){
+						if (metal(atten, iray, rec, &atten, &scattered, rec->arg)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
 							return all_zero;
 						}
+						break;
 					}
 			case 0: {
 						if (diffuse(atten, iray, rec, &atten, &scattered)){
@@ -127,6 +128,15 @@ float *ray_col (ray *iray, world *objs, int depth){
 						}else{
 							return all_zero;
 						}
+						break;
+					}
+			case 2: {
+						if (dielectric(atten, iray, rec, &atten, &scattered, rec->arg)){
+							return edot (atten, ray_col(scattered, objs, depth - 1));
+						}else{
+							return all_zero;
+						}
+						break;
 					}
 			default: {
 						 printf ("传入数据错误\n");
@@ -147,7 +157,7 @@ void render (world *world){
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
 			if (cur_frame++ % 1000 == 0)
-				printf ("process: %5d / %5d\n", cur_frame / 1000, all_frames / 1000);
+				printf ("process: %5d/%5d\n", cur_frame / 1000, all_frames / 1000);
 			float *pix_c = all_zero;
 			for (int sa = 0; sa < sample; sa++){
 				float *offset = sp_in_sq ();

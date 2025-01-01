@@ -7,7 +7,7 @@
 #include "hittable.h"
 typedef struct material{
 	char mat_type;
-	float fuzz;
+	float arg;
 	float *RGB;
 } material;
 
