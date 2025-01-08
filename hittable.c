@@ -26,7 +26,7 @@ char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {
 							*ht = *temp;															// 将结果复制到传入的hit_record
 							ht->albedo = tos->albedo;
 							ht->mat_type = tos->mat_type;
-							ht->fuzz = tos->fuzz;
+							ht->arg = tos->arg;
 						}
 						break;
 					}

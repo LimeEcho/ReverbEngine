@@ -3,8 +3,15 @@
 #include <stdlib.h>
 #include "headers/ray.h"
 #include "headers/vec3.h"
+long raymalloc;
+extern ray *ray_set;
+ray *rset_pt;
 ray *reqray (float *orig, float *dir){	// 发射一条射线
-	ray *nray = malloc (sizeof (ray));
+	if (rset_pt == NULL)
+		rset_pt = ray_set;
+	ray *nray = ray_set;
+	ray_set += 1;
+	++raymalloc;
 	nray->orig = orig;
 	nray->dir = dir;
 	return nray;

@@ -22,6 +22,8 @@ float *vp_ul;
 float *px_00_lc;
 float *all_zero;
 float *weaken;
+float *point_set;
+ray *ray_set;
 int all_frames;
 int cur_frame;
 world *objsh;												// 构建场景物体集
@@ -32,10 +34,10 @@ interval scene;
 #define SEED 123
 #define im_w 700						// 图像宽度
 #define RATIO ((float)16 / (float)9)	// 长宽比
-#define FL (float)1						// 焦距
+#define FL (float)0.9						// 焦距
 #define vp_h (float)2					// 视图高度
 #define sample 20						// 采样次数
-#define max_depth 20					// 最高深度
+#define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
 
 #include <stdarg.h>
@@ -70,17 +72,22 @@ void add_obj(float *ct, float radius, material mat) {								// 一个操作链�
 		objst = objst->next;
 	}
 }
-
 void initalize (void){
 	srand48 (SEED);
-
+	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
+	
+	point_set = (float *)malloc (im_h * im_w * sample * 3 * 40 * sizeof (float));
+	ray_set = (ray *)malloc (im_h * im_w * sample * 2 * sizeof (ray));
+	printf ("%lu\n", im_h * im_w * sample  * 3 * 40 * sizeof (float));
+	if (point_set == NULL){
+		printf ("Can't afford this much point set\n");
+		exit (1);
+	}
 	all_zero = req (0, 0, 0);
 	weaken = req (0.8, 0.8, 0.8);
 
 	objsh = NULL;
 	objst = objsh;
-
-	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
 
 	pix_samples_scale = 1.0 / sample;
 
@@ -96,7 +103,7 @@ void initalize (void){
 	vp_ul = sub(sub (cm_ct, req (0.0, 0.0, FL)), add (divi (vp_u, 2), divi (vp_v, 2)));	// 左上角像素，也就是P (0,0)
 	px_00_lc = add (vp_ul, mul (add (px_dl_u, px_dl_v), 0.5));							// 左上角像素坐标
 
-	all_frames = im_h * im_w;
+	all_frames = im_h * im_w * sample;
 	cur_frame = 0;
 
 	scene.tmin = 0.001;
@@ -105,9 +112,12 @@ void initalize (void){
 	file = fopen ("renderOut.ppm", "w");
 	fprintf (file, "P3\n%d %d\n255\n", im_w, im_h);
 }
+
+long raycoltime;
 float *ray_col (ray *iray, world *objs, int depth){
 	if (depth <= 0)
 		return all_zero;
+	++raycoltime;
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	float *color;
 	if (hit_ray (iray, scene, rec, objs)){												// 如果相交
@@ -156,21 +166,21 @@ float *ray_col (ray *iray, world *objs, int depth){
 void render (world *world){
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
-			if (cur_frame++ % 1000 == 0)
-				printf ("process: %5d/%5d\n", cur_frame / 1000, all_frames / 1000);
 			float *pix_c = all_zero;
 			for (int sa = 0; sa < sample; sa++){
+				if (++cur_frame % 10000 == 0)
+					printf ("process: %8d/%8d\n", cur_frame / 10000, all_frames / 10000);
 				float *offset = sp_in_sq ();
 				float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
 				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
-				free (offset);
+																														//free (offset);
 				ray *r = reqray (cm_ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
-				free (r);
+				//free (r);
 				pix_c = add (pix_c, col);
 			}
 			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
-			free (pix_c);
+																											//free (pix_c);
 		}
 	}
 	printf ("\rCurrent: 100.0%%\n");

@@ -10,8 +10,16 @@
 #define squ(x) ((x)*(x))
 #define dg2rd(x) (x*M_PI/180.0)
 #define epsilon 1e-6f
+long vmalloc;
+extern float *point_set;
+float *set_pt;
+
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
-	float *e = (float *)(malloc (3 * sizeof (float)));
+	if (set_pt == NULL)
+		set_pt = point_set;
+	++vmalloc;
+	float *e = set_pt;
+	set_pt += 3;
 	e[0] = e1;
 	e[1] = e2;
 	e[2] = e3;
@@ -108,7 +116,7 @@ float *rd_unit_vec (void){
 	float *p = NULL;
 	float lensq;
 	while (!(epsilon < lensq && lensq <= 1)){
-		free (p);
+		//free (p);
 		p = randomlb (-1, 1);
 		lensq = square (p);
 	}
