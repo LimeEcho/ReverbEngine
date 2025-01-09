@@ -7,25 +7,38 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "headers/vec3.h"
-#define squ(x) ((x)*(x))
-#define dg2rd(x) (x*M_PI/180.0)
-#define epsilon 1e-6f
-long vmalloc;
+
 extern float *point_set;
-float *set_pt;
+extern vec_usg *vusg;
+extern vec_usg *foremost;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
-	if (set_pt == NULL)
-		set_pt = point_set;
-	++vmalloc;
-	float *e = set_pt;
-	set_pt += 3;
+	vec_usg *tem = foremost;
+	while (tem->state == UAVA)
+		tem = tem->next;
+	tem->state = UAVA;
+	foremost = tem;
+	float *e = foremost->add;
 	e[0] = e1;
 	e[1] = e2;
 	e[2] = e3;
 	return e;
 }
 
+void vfree (float *e){
+	/*vec_usg *tem = vusg;
+	while (tem->add != e)
+		tem = tem->next;
+	tem->state = UAVA;
+	*/
+	long diff = (long)e - (long)point_set;
+	long step = diff / 3;
+	vec_usg *tem = vusg;
+	for (;step > 0; step--){
+		tem = tem->next;
+	}
+	tem->state = UAVA;
+}
 float rx (float *e){
 	return e[0];
 }
@@ -35,7 +48,7 @@ float ry (float *e){
 float rz (float *e){
 	return e[2];
 }
-float *opo (float *e){									// 关于世界原点中心对成
+float *opo (float *e){									// 关于世界原点中心对称
 	return req (-rx(e), -ry(e), -rz(e));
 }
 

@@ -3,15 +3,17 @@
 #include <stdlib.h>
 #include "headers/ray.h"
 #include "headers/vec3.h"
-long raymalloc;
 extern ray *ray_set;
-ray *rset_pt;
+extern vec_usg *rusg;
+extern vec_usg *rforemost;
+
 ray *reqray (float *orig, float *dir){	// 发射一条射线
-	if (rset_pt == NULL)
-		rset_pt = ray_set;
-	ray *nray = ray_set;
-	ray_set += 1;
-	++raymalloc;
+	vec_usg *tem = rforemost;
+	while (tem->state == UAVA)
+		tem = tem->next;
+	tem->state = UAVA;
+	rforemost = tem;
+	ray *nray = rforemost->add;
 	nray->orig = orig;
 	nray->dir = dir;
 	return nray;
@@ -39,13 +41,13 @@ float clamp (interval input, float x){
 }
 
 float size (interval input){
-			return input.tmax - input.tmin;
+	return input.tmax - input.tmin;
 }
 char contain (interval input, float t){
-			return input.tmin <= t && t <= input.tmax;
+	return input.tmin <= t && t <= input.tmax;
 }
 char surround (interval input, float t){
-			return input.tmin < t && t < input.tmax;
+	return input.tmin < t && t < input.tmax;
 }
 
 interval empty (){

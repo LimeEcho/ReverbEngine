@@ -13,10 +13,6 @@ extern struct world *objsh;
 #define MET 1
 #define DIE 2
 
-extern long vmalloc;
-extern long raymalloc;
-extern long raycoltime;
-extern int all_frames;
 int main(void){
 	initalize ();						// 初始化上述数据
 	material mat1 = add_mat (DIE, req(1, 0, 0), 1.5);//0.140486, 0.80181, 0.529821), 1.5);
@@ -29,7 +25,4 @@ int main(void){
 	add_obj(req(0, -0.1, -1), 0.4, mat4);
 	add_obj(req(0, -100.5, -1), 100, mat3);
 	render (objsh);						// 渲染选中物体集
-	printf ("v: %ld\nray: %ld\nray_col: %ld\n", vmalloc, raymalloc, raycoltime);
-	printf ("vp: %lf\nrayp: %lf\n", (double)vmalloc / (double)raycoltime, (double)raymalloc / (double)raycoltime);
-	printf ("allframes: %d\n", all_frames);
 }

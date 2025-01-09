@@ -24,6 +24,10 @@ float *all_zero;
 float *weaken;
 float *point_set;
 ray *ray_set;
+vec_usg *vusg;
+vec_usg *foremost;
+vec_usg *rusg;
+vec_usg *rforemost;
 int all_frames;
 int cur_frame;
 world *objsh;												// 构建场景物体集
@@ -32,13 +36,15 @@ interval scene;
 
 #define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
 #define SEED 123
-#define im_w 700						// 图像宽度
+#define im_w 400						// 图像宽度
 #define RATIO ((float)16 / (float)9)	// 长宽比
 #define FL (float)0.9						// 焦距
 #define vp_h (float)2					// 视图高度
 #define sample 20						// 采样次数
 #define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
+#define PMULT 40
+#define RMULT 2
 
 #include <stdarg.h>
 
@@ -75,13 +81,39 @@ void add_obj(float *ct, float radius, material mat) {								// 一个操作链�
 void initalize (void){
 	srand48 (SEED);
 	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
-	
-	point_set = (float *)malloc (im_h * im_w * sample * 3 * 40 * sizeof (float));
-	ray_set = (ray *)malloc (im_h * im_w * sample * 2 * sizeof (ray));
-	printf ("%lu\n", im_h * im_w * sample  * 3 * 40 * sizeof (float));
-	if (point_set == NULL){
+
+	point_set = (float *)malloc (im_h * im_w * sample * 3 * PMULT * sizeof (float));
+	ray_set = (ray *)malloc (im_h * im_w * sample * RMULT * sizeof (ray));
+	printf ("%lu\n", im_h * im_w * sample * 3 * PMULT * sizeof (float) + im_h * im_w * sample * RMULT * sizeof (ray));
+	if (point_set == NULL || point_set == (void *)0x0000000300000000){
 		printf ("Can't afford this much point set\n");
 		exit (1);
+	}
+
+	vusg = (vec_usg *)calloc (1, sizeof (vec_usg));
+	vec_usg *tem = vusg;
+	foremost = vusg;
+	float *temp = point_set;
+	for (int i = 0; i < im_h * im_w * sample * PMULT; i++){
+		tem->add = temp;
+		temp += 3;
+		tem->state = AVA;
+		vec_usg *next = (vec_usg *)calloc (1, sizeof (vec_usg));
+		tem->next = next;
+		tem = tem->next;
+	}
+
+	rusg = (vec_usg *)calloc (1, sizeof (vec_usg));
+	vec_usg *rtem = rusg;
+	rforemost = rusg;
+	ray *rtemp = ray_set;
+	for (int i = 0; i < im_h * im_w * sample * RMULT; i++){
+		rtem->add = rtemp;
+		rtemp += 1;
+		rtem->state = AVA;
+		vec_usg *next = (vec_usg *)calloc (1, sizeof (vec_usg));
+		rtem->next = next;
+		rtem = rtem->next;
 	}
 	all_zero = req (0, 0, 0);
 	weaken = req (0.8, 0.8, 0.8);
@@ -124,16 +156,16 @@ float *ray_col (ray *iray, world *objs, int depth){
 		ray *scattered;
 		float *atten = rec->albedo;
 		switch (rec->mat_type){
-			case 1: {
-						if (metal(atten, iray, rec, &atten, &scattered, rec->arg)){
+			case 0: {
+						if (diffuse(atten, iray, rec, &atten, &scattered)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
 							return all_zero;
 						}
 						break;
 					}
-			case 0: {
-						if (diffuse(atten, iray, rec, &atten, &scattered)){
+			case 1: {
+						if (metal(atten, iray, rec, &atten, &scattered, rec->arg)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
 							return all_zero;
@@ -166,18 +198,17 @@ float *ray_col (ray *iray, world *objs, int depth){
 void render (world *world){
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
-			float *pix_c = all_zero;
+			float *pix_c = req (0, 0, 0);
 			for (int sa = 0; sa < sample; sa++){
 				if (++cur_frame % 10000 == 0)
 					printf ("process: %8d/%8d\n", cur_frame / 10000, all_frames / 10000);
 				float *offset = sp_in_sq ();
 				float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
 				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
-																														//free (offset);
 				ray *r = reqray (cm_ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
-				//free (r);
 				pix_c = add (pix_c, col);
+				//vfree (pix_c);
 			}
 			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
 																											//free (pix_c);
