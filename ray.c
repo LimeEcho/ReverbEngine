@@ -3,20 +3,22 @@
 #include <stdlib.h>
 #include "headers/ray.h"
 #include "headers/vec3.h"
-extern ray *ray_set;
-extern vec_usg *rusg;
-extern vec_usg *rforemost;
 
-ray *reqray (float *orig, float *dir){	// 发射一条射线
-	vec_usg *tem = rforemost;
-	while (tem->state == UAVA)
-		tem = tem->next;
-	tem->state = UAVA;
-	rforemost = tem;
-	ray *nray = rforemost->add;
-	nray->orig = orig;
-	nray->dir = dir;
-	return nray;
+extern ray *ray_set;
+extern ray **rusg;
+extern char *rava;
+extern long rforemost;
+extern long rayam;
+
+ray *reqray (float *orig, float *direction){
+	for (; rforemost < rayam; rforemost++){
+		if (rava[rforemost] == AVA)
+			break;
+	}
+	rava[rforemost] = UAVA;
+	rusg[rforemost]->orig = orig;
+	rusg[rforemost]->dir = direction;
+	return rusg[rforemost];
 }
 
 float *origin (ray *iray) {				// 返回起点

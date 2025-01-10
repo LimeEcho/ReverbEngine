@@ -9,35 +9,30 @@
 #include "headers/vec3.h"
 
 extern float *point_set;
-extern vec_usg *vusg;
-extern vec_usg *foremost;
+extern float **vusg;
+extern char *vava;
+extern long foremost;
+extern long vam;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
-	vec_usg *tem = foremost;
-	while (tem->state == UAVA)
-		tem = tem->next;
-	tem->state = UAVA;
-	foremost = tem;
-	float *e = foremost->add;
-	e[0] = e1;
-	e[1] = e2;
-	e[2] = e3;
-	return e;
+	if (vam == (long)0){
+		printf ("VAM == 0!\n");
+	}
+	for (; foremost < vam; foremost++){
+		if (vava[foremost] == AVA)
+			break;
+	}
+	vava[foremost] = UAVA;
+	*(vusg[foremost]) = e1;
+	*(vusg[foremost] + 1) = e2;
+	*(vusg[foremost] + 2) = e3;
+	return vusg[foremost];
 }
 
 void vfree (float *e){
-	/*vec_usg *tem = vusg;
-	while (tem->add != e)
-		tem = tem->next;
-	tem->state = UAVA;
-	*/
 	long diff = (long)e - (long)point_set;
 	long step = diff / 3;
-	vec_usg *tem = vusg;
-	for (;step > 0; step--){
-		tem = tem->next;
-	}
-	tem->state = UAVA;
+	vava[step] = AVA;
 }
 float rx (float *e){
 	return e[0];

@@ -25,4 +25,6 @@ int main(void){
 	add_obj(req(0, -0.1, -1), 0.4, mat4);
 	add_obj(req(0, -100.5, -1), 100, mat3);
 	render (objsh);						// 渲染选中物体集
+	int i;
+	scanf ("%d", &i);
 }
