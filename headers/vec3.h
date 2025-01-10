@@ -12,12 +12,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-typedef struct vec_usg {
-	void *add;
-	char state;
-	struct vec_usg *next;
-} vec_usg;
-
 float *req (float, float, float);				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 void vfree (float *);
 float rx (float *);
