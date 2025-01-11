@@ -7,10 +7,10 @@
 char sph_ht (float *, interval, float, ray *, hit_rc *);											// 具体实现在headers/sphere.h中
 
 void st_fc_nm (ray *iray, float *ot_nm, hit_rc *ht){
-		// ot_nm默认已经有了归一化处理
+	// ot_nm默认已经有了归一化处理
 
-			ht->ft_fc = dot (direction (iray), ot_nm) < 0;
-				ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
+	ht->ft_fc = dot (direction (iray), ot_nm) < 0;
+	ht->normal = ht->ft_fc ? ot_nm : opo (ot_nm);
 }
 
 char hit_ray(ray *iray, interval ray_t, hit_rc *ht, world *objs) {

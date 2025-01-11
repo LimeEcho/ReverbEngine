@@ -9,6 +9,7 @@ char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){			
 	float a = square (direction (iray));
 	float h = dot (direction (iray), oc);
 	float c = square (oc) - squ(radius);
+	vfree (oc);
 	float delta = squ(h) - a * c;
 
 	if (delta < 0)																		// 如果不相交
@@ -22,8 +23,10 @@ char sph_ht (float *ct, interval ray_t, float radius, ray *iray, hit_rc *ht){			
 	}
 	ht->t = t;
 	ht->p = at (iray, t);
-	ht->normal = divi (sub (ht->p, ct), radius);
-	float *ot_nm = divi (sub (ht->p, ct), radius);
+	float *temp1 = sub (ht->p, ct);
+	ht->normal = divi (temp1, radius);
+	float *ot_nm = divi (temp1, radius);
+	vfree (temp1);
 	st_fc_nm (iray, ot_nm, ht);
 	return 1;
 }

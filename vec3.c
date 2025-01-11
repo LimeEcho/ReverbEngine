@@ -137,11 +137,14 @@ float *rd_unit_vec (void){
 }
 
 float *rd_on_he (float *normal){
-	float * on = rd_unit_vec();
-	if (dot (on, normal) > 0.0)
+	float *on = rd_unit_vec();
+	if (dot (on, normal) > 0.0){
 		return on;
-	else
-		return opo (on);
+	}else{
+		float *temp1 = opo (on);
+		vfree (on);
+		return temp1;
+	}
 }
 
 char too_small (float *e){
@@ -149,13 +152,23 @@ char too_small (float *e){
 }
 
 float *reflect(float *v, float *n) {
-	return sub (v, mul (n, 2 * dot (v, n)));
+	float *temp1 = mul (n, 2 * dot (v, n));
+	float *temp2 = sub (v, temp1);
+	vfree (temp1);
+	return temp2;
 }
 
 float *refract(float *uv, float *n, float etai_over_etat) {
-	float temp = dot(opo(uv), n);
+	float *temp1 = opo(uv);
+	float temp = dot(temp1, n);
+	vfree (temp1);
 	float cos_theta = (temp < 0) ? 1.0 : temp;
-	float *r_out_perp = add (uv, mul (n, cos_theta));
+	temp1 = mul (n, cos_theta);
+	float *r_out_perp = add (uv, temp1);
+	vfree (temp1);
 	float *r_out_parallel = mul (n, -(float)sqrt(fabs(1.0 - length (r_out_perp))));
-	return add (r_out_perp, r_out_parallel);
+	temp1 = add (r_out_perp, r_out_parallel);
+	vfree (r_out_perp);
+	vfree (r_out_parallel);
+	return temp1;
 }

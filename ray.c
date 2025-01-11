@@ -31,7 +31,10 @@ float *direction (ray *iray) {			// 返回方向向量
 float *at (ray *iray, float t){			// 返回t时的点坐标
 	float *orig = iray->orig;
 	float *dir = iray->dir;
-	return add (orig, mul (dir, t));
+	float *temp1 = mul (dir, t);
+	float *temp2 = add (orig, temp1);
+	vfree (temp1);
+	return temp2;
 }
 
 float clamp (interval input, float x){
