@@ -4,9 +4,13 @@
 #include "headers/material.h"
 #include "headers/vec3.h"
 char diffuse (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scattered){
-	float *direction = add (rec->normal, rd_unit_vec());
-	if (too_small (direction))
+	float *temp1 = rd_unit_vec();
+	float *direction = add (rec->normal, temp1);
+	vfree (temp1);
+	if (too_small (direction)){
+		vfree (direction);
 		direction = rec->normal;
+	}
 	*scattered = reqray (rec->p, direction);
 	*atten = edot (albedo, weaken);
 	return 1;

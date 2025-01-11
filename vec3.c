@@ -15,8 +15,8 @@ extern long foremost;
 extern long vam;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
-	if (vam == (long)0){
-		printf ("VAM == 0!\n");
+	if (foremost > vam){
+		printf ("foremost > vam\n");
 	}
 	for (; foremost < vam; foremost++){
 		if (vava[foremost] == AVA)
@@ -30,9 +30,14 @@ float *req (float e1, float e2, float e3){				// 获取，在C++里用class，�
 }
 
 void vfree (float *e){
-	long diff = (long)e - (long)point_set;
-	long step = diff / 3;
+	if (e == NULL)
+		return;
+	long step = (e - point_set) / 3;
+	if (step > vam){
+		printf ("e > vam\n");
+	}
 	vava[step] = AVA;
+	foremost = step;
 }
 float rx (float *e){
 	return e[0];
@@ -124,7 +129,7 @@ float *rd_unit_vec (void){
 	float *p = NULL;
 	float lensq;
 	while (!(epsilon < lensq && lensq <= 1)){
-		//free (p);
+		vfree (p);
 		p = randomlb (-1, 1);
 		lensq = square (p);
 	}

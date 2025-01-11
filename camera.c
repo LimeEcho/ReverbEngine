@@ -20,7 +20,6 @@ float *px_dl_u;
 float *px_dl_v;
 float *vp_ul;
 float *px_00_lc;
-float *all_zero;
 float *weaken;
 float *point_set;
 ray *ray_set;
@@ -40,15 +39,15 @@ interval scene;
 
 #define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
 #define SEED 123
-#define im_w 300						// 图像宽度
+#define im_w 700						// 图像宽度
 #define RATIO ((float)16 / (float)9)	// 长宽比
 #define FL (float)0.9						// 焦距
 #define vp_h (float)2					// 视图高度
-#define sample 20						// 采样次数
+#define sample 10						// 采样次数
 #define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
-#define PMULT 50
-#define RMULT 5
+#define PMULT 32
+#define RMULT 10
 
 #include <stdarg.h>
 
@@ -86,10 +85,9 @@ void initalize (void){
 	srand48 (SEED);
 	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
 
-	vam = im_h * im_w * sample * 3 * PMULT;
-	printf ("%ld\n", vam);
+	vam = im_h * im_w * sample * PMULT;
 	rayam = im_h * im_w * sample * RMULT;
-	point_set = (float *)malloc (vam * sizeof (float));
+	point_set = (float *)malloc (vam * 3 * sizeof (float));
 	ray_set = (ray *)malloc (rayam * sizeof (ray));
 
 	vusg = (float **)malloc (vam * sizeof (float *));
@@ -97,7 +95,7 @@ void initalize (void){
 	char *temava = vava;
 	float **temp = vusg;
 	foremost = 0;
-	for (int i = 0; i < im_h * im_w * sample * PMULT; i++){
+	for (int i = 0; i < vam; i++){
 		temp[i] = point_set + i * 3;
 		*(temava++) = AVA;
 	}
@@ -107,11 +105,10 @@ void initalize (void){
 	char *temrava = rava;
 	ray **rtemp = rusg;
 	rforemost = 0;
-	for (int i = 0; i < im_h * im_w * sample * RMULT; i++){
+	for (int i = 0; i < rayam; i++){
 		rtemp[i] = ray_set + i * 3;
 		*(temrava++) = AVA;
 	}
-	all_zero = req (0, 0, 0);
 	weaken = req (0.8, 0.8, 0.8);
 
 	objsh = NULL;
@@ -127,9 +124,22 @@ void initalize (void){
 
 	px_dl_u = divi (vp_u, im_w);
 	px_dl_v = divi (vp_v, im_h);
-
-	vp_ul = sub(sub (cm_ct, req (0.0, 0.0, FL)), add (divi (vp_u, 2), divi (vp_v, 2)));	// 左上角像素，也就是P (0,0)
-	px_00_lc = add (vp_ul, mul (add (px_dl_u, px_dl_v), 0.5));							// 左上角像素坐标
+	
+	float *temp1 = divi (vp_v, 2);
+	float *temp2 = divi (vp_u, 2);
+	float *temp3 = add (temp1, temp2);
+	vfree (temp1);
+	vfree (temp2);
+	temp1 = req (0.0, 0.0, FL);
+	temp2 = sub (cm_ct, temp1);
+	vfree (temp1);
+	vp_ul = sub(temp2, temp3);	// 左上角像素，也就是P (0,0)
+	vfree (temp2);
+	vfree (temp3);
+	temp1 = add (px_dl_u, px_dl_v);
+	temp2 = mul (temp1, 0.5);
+	vfree (temp1);
+	px_00_lc = add (vp_ul, temp2);							// 左上角像素坐标
 
 	all_frames = im_h * im_w * sample;
 	cur_frame = 0;
@@ -144,7 +154,7 @@ void initalize (void){
 long raycoltime;
 float *ray_col (ray *iray, world *objs, int depth){
 	if (depth <= 0)
-		return all_zero;
+		return req(0,0,0);
 	++raycoltime;
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	float *color;
@@ -156,7 +166,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 						if (diffuse(atten, iray, rec, &atten, &scattered)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
-							return all_zero;
+							return req(0,0,0);
 						}
 						break;
 					}
@@ -164,7 +174,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 						if (metal(atten, iray, rec, &atten, &scattered, rec->arg)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
-							return all_zero;
+							return req(0,0,0);
 						}
 						break;
 					}
@@ -172,7 +182,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 						if (dielectric(atten, iray, rec, &atten, &scattered, rec->arg)){
 							return edot (atten, ray_col(scattered, objs, depth - 1));
 						}else{
-							return all_zero;
+							return req(0,0,0);
 						}
 						break;
 					}
@@ -192,6 +202,9 @@ float *ray_col (ray *iray, world *objs, int depth){
 }
 
 void render (world *world){
+	float *temp1;
+	float *temp2;
+	float *temp3;
 	for (int y = 0; y < im_h; y++){
 		for (int x = 0; x < im_w; x++){
 			float *pix_c = req (0, 0, 0);
@@ -199,15 +212,23 @@ void render (world *world){
 				if (++cur_frame % 10000 == 0)
 					printf ("process: %8d/%8d\n", cur_frame / 10000, all_frames / 10000);
 				float *offset = sp_in_sq ();
-				float *px_ct = add (px_00_lc, add (mul (px_dl_u, rx (offset) + x), mul (px_dl_v, ry (offset) + y)));	// 像素中心坐标
+				temp1 = mul (px_dl_v, ry (offset) + y);
+				temp2 = mul (px_dl_u, rx (offset) + x);
+				temp3 = add (temp2, temp1);
+				vfree (temp1);
+				vfree (temp2);
+				float *px_ct = add (px_00_lc, temp3);	// 像素中心坐标
+				vfree (temp3);
 				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
 				ray *r = reqray (cm_ct, ray_dir);
+				//vfree (px_ct);
+				//vfree (ray_dir);
 				float *col = ray_col (r, world, max_depth);
 				pix_c = add (pix_c, col);
-				vfree (pix_c);
+				vfree (col);
 			}
 			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
-																											//free (pix_c);
+			vfree (pix_c);
 		}
 	}
 	printf ("\rCurrent: 100.0%%\n");
