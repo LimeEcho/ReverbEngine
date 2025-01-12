@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "headers/vec3.h"
 
 extern float *point_set;
@@ -15,12 +16,10 @@ extern long foremost;
 extern long vam;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
+	for (;vava[foremost] == UAVA; foremost++);
 	if (foremost > vam){
-		printf ("foremost > vam\n");
-	}
-	for (; foremost < vam; foremost++){
-		if (vava[foremost] == AVA)
-			break;
+		printf ("vam过小！\n");
+		exit (1);
 	}
 	vava[foremost] = UAVA;
 	*(vusg[foremost]) = e1;
@@ -33,12 +32,10 @@ void vfree (float *e){
 	if (e == NULL)
 		return;
 	long step = (e - point_set) / 3;
-	if (step > vam){
-		printf ("e > vam\n");
-	}
 	vava[step] = AVA;
 	foremost = step;
 }
+
 float rx (float *e){
 	return e[0];
 }

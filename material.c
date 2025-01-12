@@ -12,7 +12,6 @@ char diffuse (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scatte
 		direction = rec->normal;
 	}
 	*scattered = reqray (rec->p, direction);
-	vfree (*atten);
 	*atten = edot (albedo, weaken);
 	return 1;
 }
@@ -27,13 +26,11 @@ char metal (float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scattere
 	vfree (temp1);
 	vfree (temp2);
 	*scattered = reqray(rec->p, reflected);
-	vfree (*atten);
 	*atten = edot (albedo, weaken);
 	return (dot(direction(*scattered), rec->normal) > 0);
 }
 
 char dielectric(float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scattered, float ref_index){
-	vfree (*atten);
 	*atten = albedo;
 	float ri = rec->ft_fc ? (1.0 / ref_index) : ref_index;
 

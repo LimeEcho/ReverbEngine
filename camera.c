@@ -1,4 +1,5 @@
 // camera.c
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
@@ -43,10 +44,10 @@ interval scene;
 #define RATIO ((float)16 / (float)9)	// 长宽比
 #define FL (float)0.9						// 焦距
 #define vp_h (float)2					// 视图高度
-#define sample 10						// 采样次数
+#define sample 100						// 采样次数
 #define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
-#define PMULT 32
+#define PMULT 20
 #define RMULT 10
 
 #include <stdarg.h>
@@ -124,7 +125,7 @@ void initalize (void){
 
 	px_dl_u = divi (vp_u, im_w);
 	px_dl_v = divi (vp_v, im_h);
-	
+
 	float *temp1 = divi (vp_v, 2);
 	float *temp2 = divi (vp_u, 2);
 	float *temp3 = add (temp1, temp2);
@@ -161,29 +162,18 @@ float *ray_col (ray *iray, world *objs, int depth){
 	if (hit_ray (iray, scene, rec, objs)){												// 如果相交
 		ray *scattered;
 		float *atten = rec->albedo;
+		int cont;
 		switch (rec->mat_type){
 			case 0: {
-						if (diffuse(atten, iray, rec, &atten, &scattered)){
-							return edot (atten, ray_col(scattered, objs, depth - 1));
-						}else{
-							return req(0,0,0);
-						}
+						cont = diffuse(atten, iray, rec, &atten, &scattered);
 						break;
 					}
 			case 1: {
-						if (metal(atten, iray, rec, &atten, &scattered, rec->arg)){
-							return edot (atten, ray_col(scattered, objs, depth - 1));
-						}else{
-							return req(0,0,0);
-						}
+						cont = metal(atten, iray, rec, &atten, &scattered, rec->arg);
 						break;
 					}
 			case 2: {
-						if (dielectric(atten, iray, rec, &atten, &scattered, rec->arg)){
-							return edot (atten, ray_col(scattered, objs, depth - 1));
-						}else{
-							return req(0,0,0);
-						}
+						cont = dielectric(atten, iray, rec, &atten, &scattered, rec->arg);
 						break;
 					}
 			default: {
@@ -191,10 +181,27 @@ float *ray_col (ray *iray, world *objs, int depth){
 						 exit (1);
 					 }
 		}
+		if (cont){
+			float *temp1 = ray_col(scattered, objs, depth - 1);
+			float *temp2 = edot (atten, temp1);
+			vfree (temp1);
+			return temp2;
+		}else{
+			return req(0,0,0);
+		}
 	}else{
 		float *unit_dir = unit_vec (direction (iray));									// 渐变颜色，先使方向归一化
+		vfree (unit_dir);
 		float a = 0.5 * (ry (unit_dir) + 1.0);											// 渐变系数
-		color = add (mul (req (1.0, 1.0, 1.0), (1.0 - a)), mul (req (0.5, 0.7, 1.0), a));
+		float *temp1 = req (0.5, 0.7, 1.0);
+		float *temp2 = mul (temp1, a);
+		vfree (temp1);
+		temp1 = req (1.0, 1.0, 1.0);
+		float *temp3 = mul (temp1, (1.0 - a));
+		vfree (temp1);
+		color = add (temp3, temp2);
+		vfree (temp2);
+		vfree (temp3);
 		// blendedValue = (1 - a) * startValue + a * endValue
 	}
 	free (rec);
@@ -209,8 +216,8 @@ void render (world *world){
 		for (int x = 0; x < im_w; x++){
 			float *pix_c = req (0, 0, 0);
 			for (int sa = 0; sa < sample; sa++){
-				if (++cur_frame % 10000 == 0)
-					printf ("process: %8d/%8d\n", cur_frame / 10000, all_frames / 10000);
+				if (++cur_frame % 100000 == 0)
+					printf ("process: %8d/%8d\n", cur_frame / 100000, all_frames / 100000);
 				float *offset = sp_in_sq ();
 				temp1 = mul (px_dl_v, ry (offset) + y);
 				temp2 = mul (px_dl_u, rx (offset) + x);
@@ -221,8 +228,6 @@ void render (world *world){
 				vfree (temp3);
 				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
 				ray *r = reqray (cm_ct, ray_dir);
-				//vfree (px_ct);
-				//vfree (ray_dir);
 				float *col = ray_col (r, world, max_depth);
 				pix_c = add (pix_c, col);
 				vfree (col);

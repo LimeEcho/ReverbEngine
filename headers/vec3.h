@@ -14,6 +14,7 @@
 
 float *req (float, float, float);				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 void vfree (float *);
+void *find_foremost (void *);
 float rx (float *);
 float ry (float *);
 float rz (float *);
