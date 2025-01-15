@@ -47,8 +47,8 @@ interval scene;
 #define sample 100						// 采样次数
 #define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
-#define PMULT 20
-#define RMULT 10
+#define PMULT 12.5
+#define RMULT 0.01
 
 #include <stdarg.h>
 
@@ -183,6 +183,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 		}
 		if (cont){
 			float *temp1 = ray_col(scattered, objs, depth - 1);
+			rfree (scattered);
 			float *temp2 = edot (atten, temp1);
 			vfree (temp1);
 			return temp2;
@@ -229,6 +230,7 @@ void render (world *world){
 				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
 				ray *r = reqray (cm_ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
+				rfree (r);
 				pix_c = add (pix_c, col);
 				vfree (col);
 			}

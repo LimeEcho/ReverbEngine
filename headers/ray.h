@@ -12,6 +12,7 @@ typedef struct interval {
 	float tmax;
 } interval;
 ray *reqray (float *, float *);	// 发射一条射线
+void rfree (ray *);
 float *origin (ray *);				// 返回起点
 float *direction (ray *);			// 返回方向向量
 float *at (ray *, float);			// 返回t时的点坐标

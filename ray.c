@@ -11,14 +11,19 @@ extern long rforemost;
 extern long rayam;
 
 ray *reqray (float *orig, float *direction){
-	for (; rforemost < rayam; rforemost++){
-		if (rava[rforemost] == AVA)
-			break;
-	}
+	for (; rava[rforemost] == UAVA; rforemost++);
 	rava[rforemost] = UAVA;
 	rusg[rforemost]->orig = orig;
 	rusg[rforemost]->dir = direction;
 	return rusg[rforemost];
+}
+
+void rfree (ray *e){
+	if (e == NULL)
+		return;
+	long step = (e - ray_set) / 3;
+	rava[step] = AVA;
+	rforemost = step;
 }
 
 float *origin (ray *iray) {				// 返回起点
