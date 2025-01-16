@@ -14,7 +14,7 @@ extern struct world *objsh;
 #define DIE 2
 
 int main(void){
-	initalize ();						// 初始化上述数据
+	initialize ();						// 初始化上述数据
 	material mat1 = add_mat (DIE, req(1, 0, 0), 1.5);//0.140486, 0.80181, 0.529821), 1.5);
 	material mat2 = add_mat (DEF, req(0.425464, 0.028545, 0.803165));
 	material mat3 = add_mat (MET, req(0.803776, 0.784217, 0.000836), 0.7);

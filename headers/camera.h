@@ -13,7 +13,7 @@ typedef struct material{
 
 material add_mat (char, float *, ...);
 void add_obj(float *, float, material);
-void initalize (void);
+void initialize (void);
 float *ray_col (ray *, world *, int);
 void render (world *);
 #endif

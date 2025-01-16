@@ -6,11 +6,14 @@
 
 #define squ(x) ((x)*(x))
 #define epsilon 1e-6f
-#define AVA 0
-#define UAVA 1
 
 #include <stdlib.h>
 #include <math.h>
+
+typedef struct freed {
+	void *add;
+	struct freed *next;
+} freed;
 
 float *req (float, float, float);				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 void vfree (float *);

@@ -3,7 +3,7 @@
 
 #ifndef RAY
 #define RAY
-typedef struct ray {						// 一条射线，包含起点和方向向量
+typedef struct ray{
 	float *orig;
 	float *dir;
 } ray;

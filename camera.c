@@ -24,11 +24,11 @@ float *px_00_lc;
 float *weaken;
 float *point_set;
 ray *ray_set;
-float **vusg;
-char *vava;
+freed *vfreed;
+freed *vfend;
 long foremost;
-ray **rusg;
-char *rava;
+freed *rfreed;
+freed *rfend;
 long rforemost;
 int all_frames;
 int cur_frame;
@@ -42,13 +42,13 @@ interval scene;
 #define SEED 123
 #define im_w 700						// 图像宽度
 #define RATIO ((float)16 / (float)9)	// 长宽比
-#define FL (float)0.9						// 焦距
+#define FL (float)0.9					// 焦距
 #define vp_h (float)2					// 视图高度
-#define sample 100						// 采样次数
+#define sample 20						// 采样次数
 #define max_depth 50					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
-#define PMULT 12.5
-#define RMULT 0.01
+#define PMULT 10.5
+#define RMULT 10
 
 #include <stdarg.h>
 
@@ -82,7 +82,7 @@ void add_obj(float *ct, float radius, material mat) {								// 一个操作链�
 		objst = objst->next;
 	}
 }
-void initalize (void){
+void initialize (void){
 	srand48 (SEED);
 	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
 
@@ -91,25 +91,20 @@ void initalize (void){
 	point_set = (float *)malloc (vam * 3 * sizeof (float));
 	ray_set = (ray *)malloc (rayam * sizeof (ray));
 
-	vusg = (float **)malloc (vam * sizeof (float *));
-	vava = (char *)malloc (vam * sizeof (char));
-	char *temava = vava;
-	float **temp = vusg;
 	foremost = 0;
-	for (int i = 0; i < vam; i++){
-		temp[i] = point_set + i * 3;
-		*(temava++) = AVA;
-	}
 
-	rusg = (ray **)malloc (rayam * sizeof (ray *));
-	rava = (char *)malloc (rayam * sizeof (char));
-	char *temrava = rava;
-	ray **rtemp = rusg;
+	vfreed = (freed *)malloc (sizeof (freed));
+	vfend = vfreed;
+	vfreed->add = NULL;
+	vfreed->next = NULL;
+
 	rforemost = 0;
-	for (int i = 0; i < rayam; i++){
-		rtemp[i] = ray_set + i * 3;
-		*(temrava++) = AVA;
-	}
+
+	rfreed = (freed *)malloc (sizeof (freed));
+	rfend = vfreed;
+	rfreed->add = NULL;
+	rfreed->next = NULL;
+
 	weaken = req (0.8, 0.8, 0.8);
 
 	objsh = NULL;

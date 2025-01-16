@@ -10,30 +10,40 @@
 #include "headers/vec3.h"
 
 extern float *point_set;
-extern float **vusg;
-extern char *vava;
-extern long foremost;
 extern long vam;
+extern long foremost;
+extern freed *vfreed;
+extern freed *vfend;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
-	for (;vava[foremost] == UAVA; foremost++);
-	if (foremost > vam){
-		printf ("vam过小！\n");
-		exit (1);
+	if (vfreed->add != NULL){
+		freed *temp = vfreed->next;
+		float *vtemp = vfreed->add;
+		free (vfreed);
+		vfreed = temp;
+		vtemp[0] = e1;
+		vtemp[1] = e2;
+		vtemp[2] = e3;
+		return vtemp;
+	}else{
+		float *e = point_set + foremost * 3;
+		e[0] = e1;
+		e[1] = e2;
+		e[2] = e3;
+		foremost++;
+		return e;
 	}
-	vava[foremost] = UAVA;
-	*(vusg[foremost]) = e1;
-	*(vusg[foremost] + 1) = e2;
-	*(vusg[foremost] + 2) = e3;
-	return vusg[foremost];
 }
 
 void vfree (float *e){
 	if (e == NULL)
 		return;
-	long step = (e - point_set) / 3;
-	vava[step] = AVA;
-	foremost = step;
+	vfend->add = e;
+	freed *next = (freed *)malloc (sizeof (freed));
+	next->add = NULL;
+	next->next = NULL;
+	vfend->next = next;
+	vfend = vfend->next;
 }
 
 float rx (float *e){
