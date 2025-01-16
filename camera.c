@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
+#include <string.h>
 #include "headers/camera.h"
 #include "headers/ray.h"
 #include "headers/vec3.h"
@@ -89,7 +90,9 @@ void initialize (void){
 	vam = im_h * im_w * sample * PMULT;
 	rayam = im_h * im_w * sample * RMULT;
 	point_set = (float *)malloc (vam * 3 * sizeof (float));
+	memset (point_set, 0, vam * 3 * sizeof (float));
 	ray_set = (ray *)malloc (rayam * sizeof (ray));
+	memset (ray_set, 0, rayam * sizeof (ray));
 
 	foremost = 0;
 
@@ -176,6 +179,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 						 exit (1);
 					 }
 		}
+		free (rec);
 		if (cont){
 			float *temp1 = ray_col(scattered, objs, depth - 1);
 			rfree (scattered);
