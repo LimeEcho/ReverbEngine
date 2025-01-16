@@ -13,7 +13,6 @@ extern freed *rfend;
 
 ray *reqray (float *ori, float *dir){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 	if (rfreed->add != NULL){
-		printf ("SUC\n");
 		freed *temp = rfreed->next;
 		ray *rtemp = rfreed->add;
 		free (rfreed);

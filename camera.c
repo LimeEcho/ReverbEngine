@@ -45,10 +45,10 @@ interval scene;
 #define FL (float)0.9					// 焦距
 #define vp_h (float)2					// 视图高度
 #define sample 20						// 采样次数
-#define max_depth 50					// 最高深度
+#define max_depth 5					// 最高深度
 #define GAMMA 0.6						// GAMMA预设
 #define PMULT 10.5
-#define RMULT 10
+#define RMULT 0.0005
 
 #include <stdarg.h>
 
@@ -101,7 +101,7 @@ void initialize (void){
 	rforemost = 0;
 
 	rfreed = (freed *)malloc (sizeof (freed));
-	rfend = vfreed;
+	rfend = rfreed;
 	rfreed->add = NULL;
 	rfreed->next = NULL;
 
