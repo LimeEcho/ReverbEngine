@@ -13,7 +13,12 @@
 // 在main最后include的，所以不需要include任何头文件
 FILE *file;
 int im_h;
+float FL;
 float pix_samples_scale;
+float *w;
+float *u;
+float *v;
+float vp_h;
 float vp_w;
 float *cm_ct;
 float *vp_u;
@@ -23,6 +28,9 @@ float *px_dl_v;
 float *vp_ul;
 float *px_00_lc;
 float *weaken;
+float *lookfrom;
+float *lookat;
+float *vup;
 float *point_set;
 ray *ray_set;
 freed *vfreed;
@@ -42,14 +50,14 @@ interval scene;
 #define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
 #define SEED 123
 #define im_w 700						// 图像宽度
-#define RATIO ((float)16 / (float)9)	// 长宽比
-#define FL (float)0.9					// 焦距
-#define vp_h (float)2					// 视图高度
+#define RATIO (16.0 / 9.0)	// 长宽比
+#define vfov 20.0
 #define sample 20						// 采样次数
-#define max_depth 5					// 最高深度
+#define max_depth 5						// 最高深度
 #define GAMMA 0.6						// GAMMA预设
-#define PMULT 10.5
-#define RMULT 0.0005
+#define WEAKEN 0.8
+#define PMULT 20
+#define RMULT 0.005
 
 #include <stdarg.h>
 
@@ -108,33 +116,52 @@ void initialize (void){
 	rfreed->add = NULL;
 	rfreed->next = NULL;
 
-	weaken = req (0.8, 0.8, 0.8);
+	weaken = req (WEAKEN, WEAKEN, WEAKEN);
+	lookfrom = req (-1, 1, 0.5);
+	lookat = req (0, 0, -1);
+	vup = req (0, 1, 0);
 
 	objsh = NULL;
 	objst = objsh;
 
 	pix_samples_scale = 1.0 / sample;
 
-	vp_w = vp_h * ((float)im_w / im_h);								// 视图宽度
-	cm_ct = req (0.0, 0.0, 0.0);									// 相机中心
+	float *temp1 = sub (lookfrom, lookat);
+	FL = length (temp1);
+	printf ("FL: %f\n", FL);
+	float theta = de2ra (vfov);
+	float h = tan (theta / 2);
 
-	vp_u = req (vp_w, 0.0, 0.0);									// 详见explanation/ViewPort.png
-	vp_v = req (0.0, -vp_h, 0.0);
+	vp_h = 2 * h * FL;
+	vp_w = vp_h * ((float)im_w / im_h);								// 视图宽度
+	cm_ct = lookfrom;									// 相机中心
+
+	w = unit_vec (temp1);
+	vfree (temp1);
+	temp1 = cross (vup, w);
+	u = unit_vec (temp1);
+	vfree (temp1);
+	v = cross (w, u);
+
+	vp_u = mul (u, vp_w);							// 详见explanation/ViewPort.png
+	temp1 = opo (v);
+	vp_v = mul (temp1, vp_h);
+	vfree (temp1);
 
 	px_dl_u = divi (vp_u, im_w);
 	px_dl_v = divi (vp_v, im_h);
 
-	float *temp1 = divi (vp_v, 2);
-	float *temp2 = divi (vp_u, 2);
-	float *temp3 = add (temp1, temp2);
+	temp1 = mul (w, FL);
+	float *temp2 = sub (cm_ct, temp1);
 	vfree (temp1);
+	temp1 = divi (vp_u, 2);
+	float *temp3 = sub(temp2, temp1);
 	vfree (temp2);
-	temp1 = req (0.0, 0.0, FL);
-	temp2 = sub (cm_ct, temp1);
 	vfree (temp1);
-	vp_ul = sub(temp2, temp3);	// 左上角像素，也就是P (0,0)
-	vfree (temp2);
+	temp1 = divi (vp_v, 2);
+	vp_ul = sub (temp3, temp1);
 	vfree (temp3);
+	vfree (temp1);
 	temp1 = add (px_dl_u, px_dl_v);
 	temp2 = mul (temp1, 0.5);
 	vfree (temp1);

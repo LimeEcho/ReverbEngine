@@ -16,6 +16,8 @@ extern freed *vfreed;
 extern freed *vfend;
 
 float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
+	if (e1 == 0 && e2 == 0 && e3 == 0)
+		return NULL;
 	if (vfreed->add != NULL){
 		freed *temp = vfreed->next;
 		float *vtemp = vfreed->add;
@@ -47,12 +49,18 @@ void vfree (float *e){
 }
 
 float rx (float *e){
+	if (e == NULL)
+		return 0;
 	return e[0];
 }
 float ry (float *e){
+	if (e == NULL)
+		return 0;
 	return e[1];
 }
 float rz (float *e){
+	if (e == NULL)
+		return 0;
 	return e[2];
 }
 float *opo (float *e){									// 关于世界原点中心对称

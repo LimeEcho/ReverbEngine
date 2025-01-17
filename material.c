@@ -1,4 +1,5 @@
 // material.c
+#include <stdio.h>
 #include "headers/ray.h"
 #include "headers/hittable.h"
 #include "headers/material.h"
@@ -35,9 +36,24 @@ char dielectric(float *albedo, ray *iray, hit_rc *rec, float **atten, ray **scat
 	float ri = rec->ft_fc ? (1.0 / ref_index) : ref_index;
 
 	float *unit_dir = unit_vec (direction (iray));
-	float *refracted = refract (unit_dir, rec->normal, ri);
+	float *temp1 = opo (unit_dir);
+	float cos_theta = fmin(dot (temp1, rec->normal), 1.0);
+	vfree (temp1);
+	float sin_theta = sqrt (1.0 - squ (cos_theta));
+
+	char cant_refract = ri * sin_theta > 1.0;
+	float *direction;
+
+	float r0 = (1 - ref_index) / (1 + ref_index);
+	r0 = squ (r0);
+
+	if (cant_refract || (r0 + (1 - r0) * pow ((1 - cos_theta), 5)) > drand48()){
+		direction = reflect (unit_dir, rec->normal);
+	}else{
+		direction = refract (unit_dir, rec->normal, ri);
+	}
 	vfree (unit_dir);
 
-	*scattered = reqray (rec->p, refracted);
+	*scattered = reqray (rec->p, direction);
 	return 1;
 }

@@ -6,6 +6,8 @@
 
 #define squ(x) ((x)*(x))
 #define epsilon 1e-6f
+#include <math.h>
+#define de2ra(degrees) ((degrees) * M_PI / 180)
 
 #include <stdlib.h>
 #include <math.h>
