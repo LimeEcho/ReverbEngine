@@ -20,7 +20,9 @@ long foremost;
 freed *rfreed;
 freed *rfend;
 long rforemost;
-world *objsh;												
+world *objsh;
+long vam;
+long rayam;
 
 static int im_h;
 static float pix_samples_scale;
@@ -43,24 +45,22 @@ static float *lookat;
 static float *vup;
 static int all_frames;
 static int cur_frame;
-static long vam;
-static long rayam;
-static world *objst;												
+static world *objst;
 static interval scene;
 
-#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		
+#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);
 #define SEED 123
-#define im_w 700						
-#define RATIO (16.0 / 9.0)				
+#define im_w 700
+#define RATIO (16.0 / 9.0)
 #define vfov 20
-#define DEFOCUS_ANGLE 0.0
-#define FOCUS_DIST 0.5
-#define sample 10						
-#define max_depth 20						
-#define GAMMA 0.6						
+#define DEFOCUS_ANGLE 10.0
+#define FOCUS_DIST 3.4
+#define sample 100
+#define max_depth 5
+#define GAMMA 0.6
 #define WEAKEN 0.8
-#define PMULT 2
-#define RMULT 0.0009
+#define PMULT 20
+#define RMULT 0.001
 
 #include <stdarg.h>
 
@@ -77,7 +77,7 @@ material *add_mat (char mat_type, float *RGB, ...){
 	return new_mat;
 }
 
-void add_obj(float *ct, float radius, material *mat) {								
+void add_obj(float *ct, float radius, material *mat) {
 	world *new_obj = (world *)malloc(sizeof(world));
 
 	new_obj->hit_type = 1;
@@ -96,12 +96,13 @@ void add_obj(float *ct, float radius, material *mat) {
 		objst = objst->next;
 	}
 }
+
 void initialize (void){
 	srand48 (SEED);
-	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		
+	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);
 
-	vam = im_h * im_w * sample * PMULT * vfov;
-	rayam = im_h * im_w * sample * RMULT * vfov;
+	vam = im_h * im_w * sample * PMULT;
+	rayam = im_h * im_w * sample * RMULT;
 	point_set = (float *)malloc (vam * 3 * sizeof (float));
 	memset (point_set, 0, vam * 3 * sizeof (float));
 	ray_set = (ray *)malloc (rayam * sizeof (ray));
@@ -135,8 +136,8 @@ void initialize (void){
 	float h = tan (theta / 2);
 
 	vp_h = 2 * h * FOCUS_DIST;
-	vp_w = vp_h * ((float)im_w / (float)im_h);				
-	cm_ct = lookfrom;										
+	vp_w = vp_h * ((float)im_w / im_h);
+	cm_ct = lookfrom;
 
 	float *temp1 = sub (lookfrom, lookat);
 	w = unit_vec (temp1);
@@ -146,7 +147,7 @@ void initialize (void){
 	vfree (temp1);
 	v = cross (w, u);
 
-	vp_u = mul (u, vp_w);									
+	vp_u = mul (u, vp_w);
 	temp1 = opo (v);
 	vp_v = mul (temp1, vp_h);
 	vfree (temp1);
@@ -168,7 +169,7 @@ void initialize (void){
 	temp1 = add (px_dl_u, px_dl_v);
 	temp2 = mul (temp1, 0.5);
 	vfree (temp1);
-	px_00_lc = add (vp_ul, temp2);							
+	px_00_lc = add (vp_ul, temp2);
 
 	float defocus_radius = FOCUS_DIST * tan (de2ra(DEFOCUS_ANGLE / 2));
 	defocus_disk_u = mul (u, defocus_radius);
@@ -184,14 +185,12 @@ void initialize (void){
 	fprintf (file, "P3\n%d %d\n255\n", im_w, im_h);
 }
 
-long raycoltime;
 float *ray_col (ray *iray, world *objs, int depth){
 	if (depth <= 0)
 		return req(0,0,0);
-	++raycoltime;
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	float *color;
-	if (hit_ray (iray, scene, rec, objs)){												
+	if (hit_ray (iray, scene, rec, objs)){
 		ray *scattered;
 		float *atten = rec->albedo;
 		int cont;
@@ -224,9 +223,9 @@ float *ray_col (ray *iray, world *objs, int depth){
 			return req(0,0,0);
 		}
 	}else{
-		float *unit_dir = unit_vec (direction (iray));									
+		float *unit_dir = unit_vec (direction (iray));
 		vfree (unit_dir);
-		float a = 0.5 * (ry (unit_dir) + 1.0);											
+		float a = 0.5 * (ry (unit_dir) + 1.0);
 		float *temp1 = req (0.5, 0.7, 1.0);
 		float *temp2 = mul (temp1, a);
 		vfree (temp1);
@@ -236,7 +235,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 		color = add (temp3, temp2);
 		vfree (temp2);
 		vfree (temp3);
-		
+
 	}
 	free (rec);
 	return color;
@@ -258,9 +257,9 @@ void render (world *world){
 				temp3 = add (temp2, temp1);
 				vfree (temp1);
 				vfree (temp2);
-				float *px_ct = add (px_00_lc, temp3);	
+				float *px_ct = add (px_00_lc, temp3);
 				vfree (temp3);
-				float *ray_dir = sub (px_ct, cm_ct);																	
+				float *ray_dir = sub (px_ct, cm_ct);
 				float *ct;
 				if (DEFOCUS_ANGLE <= 0){
 					ct = cm_ct;
@@ -279,7 +278,7 @@ void render (world *world){
 				pix_c = add (pix_c, col);
 				vfree (col);
 			}
-			wt_c (mul (pix_c, pix_samples_scale));															
+			wt_c (mul (pix_c, pix_samples_scale));
 			vfree (pix_c);
 		}
 	}

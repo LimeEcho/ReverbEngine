@@ -29,6 +29,10 @@ float *req (float e1, float e2, float e3){
 		return vtemp;
 	}else{
 		float *e = point_set + foremost * 3;
+		/*if (e >= point_set + vam * 3){
+			printf ("PMULT过小!\n");
+			exit (1);
+		}*/
 		e[0] = e1;
 		e[1] = e2;
 		e[2] = e3;
@@ -122,11 +126,15 @@ float dot (float *u, float *v){
 		+ ry (u) * ry (v)
 		+ rz (u) * rz (v);
 }
-float *cross (float *u, float *v) {
-	return req(ry (u) * rz (v) - rz (u) * rz (v),
-			rz (u) * rx (v) - rx (u) * rz (v),
-			rx (u) * ry (v) - ry (u) * rx (v));
+
+float *cross(float *u, float *v) {
+    return req(
+        ry(u) * rz(v) - rz(u) * ry(v),
+        rz(u) * rx(v) - rx(u) * rz(v),
+        rx(u) * ry(v) - ry(u) * rx(v) 
+    );
 }
+
 float *unit_vec (float *e){
 	return divi (e, length (e));
 }

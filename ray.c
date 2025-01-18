@@ -22,6 +22,10 @@ ray *reqray (float *ori, float *dir){
 		return rtemp;
 	}else{
 		ray *r = ray_set + rforemost;
+		/*if (r > ray_set + rayam){
+			printf ("RMULT过小!\n");
+			exit(1);
+		}*/
 		r->orig = ori;
 		r->dir = dir;
 		rforemost++;
