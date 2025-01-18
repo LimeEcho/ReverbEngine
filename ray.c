@@ -11,7 +11,7 @@ extern long rforemost;
 extern freed *rfreed;
 extern freed *rfend;
 
-ray *reqray (float *ori, float *dir){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
+ray *reqray (float *ori, float *dir){				
 	if (rfreed->add != NULL){
 		freed *temp = rfreed->next;
 		ray *rtemp = rfreed->add;
@@ -38,15 +38,15 @@ void rfree (ray *e){
 	rfend = rfend->next;
 }
 
-float *origin (ray *iray) {				// 返回起点
+float *origin (ray *iray) {				
 	return iray->orig;
 }
 
-float *direction (ray *iray) {			// 返回方向向量
+float *direction (ray *iray) {			
 	return iray->dir;
 }
 
-float *at (ray *iray, float t){			// 返回t时的点坐标
+float *at (ray *iray, float t){			
 	float *orig = origin(iray);
 	float *dir = direction(iray);
 	float *temp1 = mul (dir, t);

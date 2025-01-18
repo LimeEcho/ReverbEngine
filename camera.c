@@ -10,27 +10,8 @@
 #include "headers/material.h"
 #include "headers/color.h"
 
-// 在main最后include的，所以不需要include任何头文件
 FILE *file;
-int im_h;
-float FL;
-float pix_samples_scale;
-float *w;
-float *u;
-float *v;
-float vp_h;
-float vp_w;
-float *cm_ct;
-float *vp_u;
-float *vp_v;
-float *px_dl_u;
-float *px_dl_v;
-float *vp_ul;
-float *px_00_lc;
 float *weaken;
-float *lookfrom;
-float *lookat;
-float *vup;
 float *point_set;
 ray *ray_set;
 freed *vfreed;
@@ -39,29 +20,51 @@ long foremost;
 freed *rfreed;
 freed *rfend;
 long rforemost;
-int all_frames;
-int cur_frame;
-long vam;
-long rayam;
-world *objsh;												// 构建场景物体集
-world *objst;												// 链表结构
-interval scene;
+world *objsh;												
 
-#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		// 在一个正方形里
+static int im_h;
+static float pix_samples_scale;
+static float *w;
+static float *u;
+static float *v;
+static float vp_h;
+static float vp_w;
+static float *cm_ct;
+static float *vp_u;
+static float *vp_v;
+static float *px_dl_u;
+static float *px_dl_v;
+static float *vp_ul;
+static float *px_00_lc;
+static float *defocus_disk_u;
+static float *defocus_disk_v;
+static float *lookfrom;
+static float *lookat;
+static float *vup;
+static int all_frames;
+static int cur_frame;
+static long vam;
+static long rayam;
+static world *objst;												
+static interval scene;
+
+#define sp_in_sq() req (drand48() - 0.5, drand48() - 0.5, 0);		
 #define SEED 123
-#define im_w 700						// 图像宽度
-#define RATIO (16.0 / 9.0)	// 长宽比
-#define vfov 20.0
-#define sample 20						// 采样次数
-#define max_depth 5						// 最高深度
-#define GAMMA 0.6						// GAMMA预设
+#define im_w 700						
+#define RATIO (16.0 / 9.0)				
+#define vfov 20
+#define DEFOCUS_ANGLE 0.0
+#define FOCUS_DIST 0.5
+#define sample 10						
+#define max_depth 20						
+#define GAMMA 0.6						
 #define WEAKEN 0.8
-#define PMULT 20
-#define RMULT 0.005
+#define PMULT 2
+#define RMULT 0.0009
 
 #include <stdarg.h>
 
-material add_mat (char mat_type, float *RGB, ...){
+material *add_mat (char mat_type, float *RGB, ...){
 	material *new_mat = (material *)malloc (sizeof (material));
 	new_mat->mat_type = mat_type;
 	if (mat_type == 1 || mat_type == 2){
@@ -71,18 +74,20 @@ material add_mat (char mat_type, float *RGB, ...){
 		va_end(args);
 	}
 	new_mat->RGB = RGB;
-	return *new_mat;
+	return new_mat;
 }
-void add_obj(float *ct, float radius, material mat) {								// 一个操作链表函数（骄傲）∠( ᐛ 」∠)＿
+
+void add_obj(float *ct, float radius, material *mat) {								
 	world *new_obj = (world *)malloc(sizeof(world));
 
 	new_obj->hit_type = 1;
 	new_obj->ct = ct;
 	new_obj->radius = radius;
-	new_obj->mat_type = mat.mat_type;
-	new_obj->albedo = mat.RGB;
-	new_obj->arg = mat.arg;
+	new_obj->mat_type = mat->mat_type;
+	new_obj->albedo = mat->RGB;
+	new_obj->arg = mat->arg;
 	new_obj->next = NULL;
+	free (mat);
 
 	if (objsh == NULL) {
 		objsh = objst = new_obj;
@@ -93,10 +98,10 @@ void add_obj(float *ct, float radius, material mat) {								// 一个操作链�
 }
 void initialize (void){
 	srand48 (SEED);
-	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		// 根据比例计算图像高度
+	im_h = ((int)(im_w / RATIO) < 1) ? 1 : (int)(im_w / RATIO);		
 
-	vam = im_h * im_w * sample * PMULT;
-	rayam = im_h * im_w * sample * RMULT;
+	vam = im_h * im_w * sample * PMULT * vfov;
+	rayam = im_h * im_w * sample * RMULT * vfov;
 	point_set = (float *)malloc (vam * 3 * sizeof (float));
 	memset (point_set, 0, vam * 3 * sizeof (float));
 	ray_set = (ray *)malloc (rayam * sizeof (ray));
@@ -117,7 +122,7 @@ void initialize (void){
 	rfreed->next = NULL;
 
 	weaken = req (WEAKEN, WEAKEN, WEAKEN);
-	lookfrom = req (-1, 1, 0.5);
+	lookfrom = req (-2, 2, 1);
 	lookat = req (0, 0, -1);
 	vup = req (0, 1, 0);
 
@@ -126,16 +131,14 @@ void initialize (void){
 
 	pix_samples_scale = 1.0 / sample;
 
-	float *temp1 = sub (lookfrom, lookat);
-	FL = length (temp1);
-	printf ("FL: %f\n", FL);
 	float theta = de2ra (vfov);
 	float h = tan (theta / 2);
 
-	vp_h = 2 * h * FL;
-	vp_w = vp_h * ((float)im_w / im_h);								// 视图宽度
-	cm_ct = lookfrom;									// 相机中心
+	vp_h = 2 * h * FOCUS_DIST;
+	vp_w = vp_h * ((float)im_w / (float)im_h);				
+	cm_ct = lookfrom;										
 
+	float *temp1 = sub (lookfrom, lookat);
 	w = unit_vec (temp1);
 	vfree (temp1);
 	temp1 = cross (vup, w);
@@ -143,7 +146,7 @@ void initialize (void){
 	vfree (temp1);
 	v = cross (w, u);
 
-	vp_u = mul (u, vp_w);							// 详见explanation/ViewPort.png
+	vp_u = mul (u, vp_w);									
 	temp1 = opo (v);
 	vp_v = mul (temp1, vp_h);
 	vfree (temp1);
@@ -151,7 +154,7 @@ void initialize (void){
 	px_dl_u = divi (vp_u, im_w);
 	px_dl_v = divi (vp_v, im_h);
 
-	temp1 = mul (w, FL);
+	temp1 = mul (w, FOCUS_DIST);
 	float *temp2 = sub (cm_ct, temp1);
 	vfree (temp1);
 	temp1 = divi (vp_u, 2);
@@ -165,7 +168,11 @@ void initialize (void){
 	temp1 = add (px_dl_u, px_dl_v);
 	temp2 = mul (temp1, 0.5);
 	vfree (temp1);
-	px_00_lc = add (vp_ul, temp2);							// 左上角像素坐标
+	px_00_lc = add (vp_ul, temp2);							
+
+	float defocus_radius = FOCUS_DIST * tan (de2ra(DEFOCUS_ANGLE / 2));
+	defocus_disk_u = mul (u, defocus_radius);
+	defocus_disk_v = mul (v, defocus_radius);
 
 	all_frames = im_h * im_w * sample;
 	cur_frame = 0;
@@ -184,7 +191,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 	++raycoltime;
 	hit_rc *rec = malloc (sizeof (hit_rc));
 	float *color;
-	if (hit_ray (iray, scene, rec, objs)){												// 如果相交
+	if (hit_ray (iray, scene, rec, objs)){												
 		ray *scattered;
 		float *atten = rec->albedo;
 		int cont;
@@ -217,9 +224,9 @@ float *ray_col (ray *iray, world *objs, int depth){
 			return req(0,0,0);
 		}
 	}else{
-		float *unit_dir = unit_vec (direction (iray));									// 渐变颜色，先使方向归一化
+		float *unit_dir = unit_vec (direction (iray));									
 		vfree (unit_dir);
-		float a = 0.5 * (ry (unit_dir) + 1.0);											// 渐变系数
+		float a = 0.5 * (ry (unit_dir) + 1.0);											
 		float *temp1 = req (0.5, 0.7, 1.0);
 		float *temp2 = mul (temp1, a);
 		vfree (temp1);
@@ -229,7 +236,7 @@ float *ray_col (ray *iray, world *objs, int depth){
 		color = add (temp3, temp2);
 		vfree (temp2);
 		vfree (temp3);
-		// blendedValue = (1 - a) * startValue + a * endValue
+		
 	}
 	free (rec);
 	return color;
@@ -251,16 +258,28 @@ void render (world *world){
 				temp3 = add (temp2, temp1);
 				vfree (temp1);
 				vfree (temp2);
-				float *px_ct = add (px_00_lc, temp3);	// 像素中心坐标
+				float *px_ct = add (px_00_lc, temp3);	
 				vfree (temp3);
-				float *ray_dir = sub (px_ct, cm_ct);																	// 发射射线
-				ray *r = reqray (cm_ct, ray_dir);
+				float *ray_dir = sub (px_ct, cm_ct);																	
+				float *ct;
+				if (DEFOCUS_ANGLE <= 0){
+					ct = cm_ct;
+				}else{
+					float *p = rd_in_unit_disk();
+					temp1 = mul (defocus_disk_u, rx(p));
+					temp2 = mul (defocus_disk_v, ry(p));
+					temp3 = add (temp1, temp2);
+					vfree (temp1);
+					vfree (temp2);
+					ct = add (cm_ct, temp3);
+				}
+				ray *r = reqray (ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
 				rfree (r);
 				pix_c = add (pix_c, col);
 				vfree (col);
 			}
-			wt_c (mul (pix_c, pix_samples_scale));															// 写出像素颜色（其中检测是否相交）
+			wt_c (mul (pix_c, pix_samples_scale));															
 			vfree (pix_c);
 		}
 	}

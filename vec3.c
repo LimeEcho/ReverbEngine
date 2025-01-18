@@ -15,7 +15,7 @@ extern long foremost;
 extern freed *vfreed;
 extern freed *vfend;
 
-float *req (float e1, float e2, float e3){				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
+float *req (float e1, float e2, float e3){				
 	if (e1 == 0 && e2 == 0 && e3 == 0)
 		return NULL;
 	if (vfreed->add != NULL){
@@ -63,7 +63,7 @@ float rz (float *e){
 		return 0;
 	return e[2];
 }
-float *opo (float *e){									// 关于世界原点中心对称
+float *opo (float *e){									
 	return req (-rx(e), -ry(e), -rz(e));
 }
 
@@ -130,6 +130,17 @@ float *cross (float *u, float *v) {
 float *unit_vec (float *e){
 	return divi (e, length (e));
 }
+
+float *rd_in_unit_disk (void){
+	float *p = NULL;
+	while (1){
+		vfree (p);
+		p = req (drand48(), drand48(), 0);
+		if (length(p) < 1)
+			return p;
+	}
+}
+
 float randomb (float min, float max){
 	return min + drand48 () * (max - min);
 }

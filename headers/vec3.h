@@ -19,7 +19,6 @@ typedef struct freed {
 
 float *req (float, float, float);				// 获取，在C++里用class，但是我就是喜欢C！(♯｀∧´)
 void vfree (float *);
-void *find_foremost (void *);
 float rx (float *);
 float ry (float *);
 float rz (float *);
@@ -36,6 +35,7 @@ float *edot (float *, float *);
 float dot (float *, float *);
 float *cross (float *, float *);
 float *unit_vec (float *);
+float *rd_in_unit_disk (void);
 float randomb (float, float);
 float *randoml (void);
 float *randomlb (float, float);
