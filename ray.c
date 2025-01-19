@@ -36,6 +36,8 @@ ray *reqray (float *ori, float *dir){
 void rfree (ray *e){
 	if (e == NULL)
 		return;
+	vfree (e->orig);
+	vfree (e->dir);
 	rfend->add = e;
 	freed *next = (freed *)malloc (sizeof (freed));
 	rfend->next = next;

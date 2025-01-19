@@ -139,15 +139,6 @@ float *unit_vec (float *e){
 	return divi (e, length (e));
 }
 
-float *rd_in_unit_disk (void){
-	float *p = NULL;
-	while (1){
-		vfree (p);
-		p = req (drand48(), drand48(), 0);
-		if (length(p) < 1)
-			return p;
-	}
-}
 
 float randomb (float min, float max){
 	return min + drand48 () * (max - min);
@@ -157,6 +148,16 @@ float *randoml (void){
 }
 float *randomlb (float min, float max){
 	return req (randomb(min, max), randomb(min, max), randomb(min, max));
+}
+
+float *rd_in_unit_disk (void){
+	float *p = NULL;
+	while (1){
+		vfree (p);
+		p = req (randomb(-1, 1), randomb(-1, 1), 0);
+		if (square (p) < 1)
+			return p;
+	}
 }
 
 float *rd_unit_vec (void){

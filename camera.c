@@ -21,7 +21,7 @@ freed *rfreed;
 freed *rfend;
 long rforemost;
 world *objsh;
-long vam;
+long long vam;
 long rayam;
 
 static int im_h;
@@ -60,7 +60,7 @@ static interval scene;
 #define GAMMA 0.6
 #define WEAKEN 0.8
 #define PMULT 20
-#define RMULT 0.001
+#define RMULT 1
 
 #include <stdarg.h>
 
@@ -171,10 +171,9 @@ void initialize (void){
 	vfree (temp1);
 	px_00_lc = add (vp_ul, temp2);
 
-	float defocus_radius = FOCUS_DIST * tan (de2ra(DEFOCUS_ANGLE / 2));
+	float defocus_radius = FOCUS_DIST * tan (de2ra (DEFOCUS_ANGLE /  2));
 	defocus_disk_u = mul (u, defocus_radius);
 	defocus_disk_v = mul (v, defocus_radius);
-
 	all_frames = im_h * im_w * sample;
 	cur_frame = 0;
 
@@ -241,6 +240,21 @@ float *ray_col (ray *iray, world *objs, int depth){
 	return color;
 }
 
+int yet_prog;
+
+void pro (int cur_frame, int all_frames){
+	if (cur_frame % 1000 == 0){
+		if ((int)((float)++cur_frame / (float)all_frames * 100) > yet_prog)
+			yet_prog = (int)((float)++cur_frame / (float)all_frames * 100);
+		printf ("\r\033[?25l\033[1;31;40mprocess: \033[0;37;40m[");
+		for (int i = 0; i < yet_prog; i++)
+			printf ("\033[4;32;44m█");
+		for (int i = 0; i < 100 - yet_prog; i++)
+			printf ("\033[4;37;44m▒");
+		printf ("\033[0;37;40m]");
+	}
+}
+
 void render (world *world){
 	float *temp1;
 	float *temp2;
@@ -249,8 +263,7 @@ void render (world *world){
 		for (int x = 0; x < im_w; x++){
 			float *pix_c = req (0, 0, 0);
 			for (int sa = 0; sa < sample; sa++){
-				if (++cur_frame % 100000 == 0)
-					printf ("process: %8d/%8d\n", cur_frame / 100000, all_frames / 100000);
+				pro (++cur_frame, all_frames);
 				float *offset = sp_in_sq ();
 				temp1 = mul (px_dl_v, ry (offset) + y);
 				temp2 = mul (px_dl_u, rx (offset) + x);
@@ -259,19 +272,20 @@ void render (world *world){
 				vfree (temp2);
 				float *px_ct = add (px_00_lc, temp3);
 				vfree (temp3);
-				float *ray_dir = sub (px_ct, cm_ct);
 				float *ct;
 				if (DEFOCUS_ANGLE <= 0){
 					ct = cm_ct;
 				}else{
 					float *p = rd_in_unit_disk();
-					temp1 = mul (defocus_disk_u, rx(p));
-					temp2 = mul (defocus_disk_v, ry(p));
-					temp3 = add (temp1, temp2);
+					temp1 = mul (defocus_disk_u, rx (p));
+					temp2 = add (cm_ct, temp1);
+					vfree (temp1);
+					temp1 = mul(defocus_disk_v, ry(p));
+					ct = add (temp2, temp1);
 					vfree (temp1);
 					vfree (temp2);
-					ct = add (cm_ct, temp3);
 				}
+				float *ray_dir = sub (px_ct, ct);
 				ray *r = reqray (ct, ray_dir);
 				float *col = ray_col (r, world, max_depth);
 				rfree (r);
@@ -282,5 +296,5 @@ void render (world *world){
 			vfree (pix_c);
 		}
 	}
-	printf ("\rCurrent: 100.0%%\n");
+	printf ("\n\033[?25h");
 }
